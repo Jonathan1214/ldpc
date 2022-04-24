@@ -1,0 +1,4 @@
+#define ldpc_VERSION_MAJOR @ldpc_VERSION_MAJOR@
+#define ldpc_VERSION_MINOR @ldpc_VERSION_MINOR@
+
+#cmakedefine USE_ENCODER
