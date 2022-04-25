@@ -23,6 +23,9 @@ if (USE_ENCODER)
     #   list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/encoder")
 endif()
 
+add_subdirectory(decoder)
+list(APPEND EXTRA_LIBS decoder)
+
 add_executable(ldpc main.cpp)
 
 ## 指定链接库
