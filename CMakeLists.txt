@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin) 
 
+
+add_subdirectory(ldpcc)
+list(APPEND EXTRA_LIBS ldpcc)
+
 # 增加库
 # add_subdirectory(encoder)
 # 选择是否添加 译码器库
