@@ -50,7 +50,7 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
         decode_ok = check(cc) == 0;
         iter++;
     } // per iteration or decode_ok
-#ifdef DEBUG
+#ifndef NDEBUG
     if (decode_ok) cout << "check ok!" << endl;
     else cout << " check bad !" << endl;
 #endif

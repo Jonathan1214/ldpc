@@ -57,6 +57,7 @@ int main(int, char**) {
     int m = 10000;
     cout << "test " << m << " code" << endl;
     int ok_sum = 0;
+time_t st = time(0);
 while (m--) {
     for (int i = 0; i < basecode.size(); ++i) {
         re_seqs[i] = 1 - 2*basecode[i];
@@ -72,8 +73,9 @@ while (m--) {
     // run decoder
     ok_sum += decoder.run_decoder(ac, re_seqs, ebn0);
 }
-
+time_t ed = time(0);
 cout << "check ok code : " << ok_sum << endl;
+cout << "time used : " << ed - st << "s" << endl;
 
     return 0;
 }

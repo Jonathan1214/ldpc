@@ -3,6 +3,7 @@
 #include "../LDPCc/ldpc.h"
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 #include <cstring>
 
 using std::swap;
