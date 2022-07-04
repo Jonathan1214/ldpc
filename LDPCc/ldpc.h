@@ -15,6 +15,15 @@ using std::to_string;
 using std::cout;
 using std::endl;
 
+using pos = uint16_t;
+using trans_symbol_width = float;
+using bit_pos_t = char;                           // use char to a bit
+using info_fram_t = vector<bit_pos_t>;
+using llr_width = trans_symbol_width;
+using rece_seq = vector<trans_symbol_width>;
+using llr_seq = vector<llr_width>;
+enum de_algo {msa, spa};
+
 // extern class encoder;
 // extern class decoder;
 
@@ -23,9 +32,10 @@ class LDPC {
     // friend class encoder;
 
 public:
-    using pos = uint16_t ;
-    using nodeConn = vector<pos>;
+    using nodeConn   = vector<pos>;
     using matrixConn = vector<nodeConn>;
+    using genMatCol  = info_fram_t;
+    using genMat     = vector<genMatCol>;
     LDPC() = default;
     LDPC(int _len, int _bits) : len(_len), bits(_bits), code_ratio(_bits/(_len+0.0)) {}
 
@@ -34,6 +44,8 @@ public:
                 string _vnsfile, char delim = ' ');
 
     int get_len()   const { return len;     }
+    int get_info_len() const { return 0; } // !TODO
+    bit_pos_t get_gen_xy(int i, int j) const;    // !TODO
     int get_bits()  const { return bits;    }
     int get_dc()    const { return dc;      }
     int get_dv()    const { return dv;      }

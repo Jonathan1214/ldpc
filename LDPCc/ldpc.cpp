@@ -8,7 +8,7 @@ void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, string _cnsfi
     dc = by;
     dv = bx;
     code_ratio = _bits / (_len + 0.0);
-    
+
     gf_1 = _gf_1;
     H_row = bx*_gf_1;
     H_col = by*_gf_1;
