@@ -18,6 +18,12 @@ Decoder::run_decoder(const LDPC &cc, const rece_seq &sq, double ebn0, de_algo al
     return 0;
 }
 
+/**@brief run msa decoding
+ * @param[in]  cc            LDPC code
+ * @param[in]  sq            received sequence for channel
+ * @param[in]  ebno          channel condition
+ * @param[out] int           1 -> success, 0 -> fail
+*/
 int 
 Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
     int len = cc.get_len();
@@ -32,7 +38,7 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
     for (int i = 1; i <= cc.get_col(); ++i) {
         for (int j = 0; j < cc.get_dv(); ++j) {
             vns_llr[i][j] = cc.get_vns_xy(i, j) == 0 ? 0 : initial_llr[i];
-        } 
+        }
     }
 
     // per iteration
@@ -57,6 +63,10 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
     return decode_ok;
 }
 
+/**@brief check node info update
+ * @param[in] cc    LDPC code
+ *
+*/
 void 
 Decoder::cn_update(const LDPC &cc) {
     vector<char> sign_of_llr(cc.get_dc(), 0); // 0 means >= 0 else < 0
@@ -109,6 +119,10 @@ Decoder::cn_update(const LDPC &cc) {
     } // per cn
 }
 
+/**@brief variable node info update
+ * @param[in] cc    LDPC code
+ *
+*/
 void
 Decoder::vn_update(const LDPC &cc) {
     // sum of llr all
@@ -134,6 +148,10 @@ Decoder::vn_update(const LDPC &cc) {
     } // per cn
 }
 
+/**@brief check if decoding success
+ * @param[in]  cc    LDPC code
+ * @param[out] int   0 -> check success, else -> check fail
+*/
 int
 Decoder::check(const LDPC &cc) {
     int checksum = 0;
@@ -148,6 +166,11 @@ Decoder::check(const LDPC &cc) {
     return checksum;
 }
 
+/**@brief calc LLR from received sequence at channel condition ebn0
+ * @param[in] sq          channel output to decoder
+ * @param[in] code_ratio  code ration of ldpc code
+ * @param[in] ebn0        channel condition
+*/
 void
 Decoder::get_llr(const rece_seq &sq, double code_ratio, double ebn0) {
     initial_llr.assign(sq.size()+1, 0);

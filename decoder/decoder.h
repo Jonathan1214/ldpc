@@ -10,21 +10,14 @@ using std::swap;
 using std::min_element;
 using std::distance;
 
-using pos = LDPC::pos;
-using trans_symbol_width = float;
-using bit_pos = char;                           // use char to represent
-using llr_width = float;
-using rece_seq = vector<trans_symbol_width>;
-using llr_seq = vector<llr_width>;
 
 class Decoder {
 public:
-    enum de_algo {msa, spa};
 
     Decoder() = default;
     Decoder(int _iteration, double _attenuation) : iteration(_iteration), 
             attenuation(_attenuation) {}
-    
+
     // use MSA by default
     int run_decoder(const LDPC &cc, const rece_seq &sq, double ebn0, de_algo algo = msa);
 
@@ -42,7 +35,7 @@ public:
         return this->set_iter(iter).set_atten(atten);
     }
 
-    const vector<bit_pos>& get_out_seqs() const { return out_seqs; }
+    const vector<bit_pos_t>& get_out_seqs() const { return out_seqs; }
     int get_iter() const { return iteration; }
     double get_atten() const { return attenuation; }
 
@@ -55,13 +48,13 @@ private:
     void vn_update(const LDPC &cc);
     int check(const LDPC &cc); // return checksum of all row check of LDPC code
 
-    int iteration;
-    double attenuation;
-    vector<llr_seq> cns_llr;
-    vector<llr_seq> vns_llr;
-    llr_seq sum_llr;
-    llr_seq initial_llr;
-    vector<bit_pos> out_seqs;
+    int iteration;              // iteration for LDPC decoding
+    double attenuation;         // attenuation
+    vector<llr_seq> cns_llr;    // llr during vn update
+    vector<llr_seq> vns_llr;    // llr during vn update
+    llr_seq sum_llr;            // sum of all llr during vn update
+    llr_seq initial_llr;        // channel info
+    vector<bit_pos_t> out_seqs;   // decoder output
 };
 
 
