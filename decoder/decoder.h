@@ -54,7 +54,7 @@ private:
     vector<llr_seq> vns_llr;    // llr during vn update
     llr_seq sum_llr;            // sum of all llr during vn update
     llr_seq initial_llr;        // channel info
-    vector<bit_t> out_seqs;   // decoder output
+    info_fram_t out_seqs;     // decoder output
 
     unsigned long long checkfailed = 0;
 };

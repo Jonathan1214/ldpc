@@ -8,7 +8,8 @@ Encoder::run_encoder(const LDPC& cc, const info_fram_t& info) {
     for (size_t i = 0; i < cc.get_len(); ++i) {
         bit_t cur = 0;
         for (size_t j = 0; j < cc.get_info_len(); ++j) {
-            cur ^= cc.get_gen_xy(i, j) ^ info[j];
+            // use And operation for encoding
+            cur ^= cc.get_gen_xy(i, j) & info[j];
         }
         coded_o[i] = cur;
     }
