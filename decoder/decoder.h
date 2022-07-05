@@ -35,7 +35,7 @@ public:
         return this->set_iter(iter).set_atten(atten);
     }
 
-    const vector<bit_pos_t>& get_out_seqs() const { return out_seqs; }
+    const vector<bit_t>& get_out_seqs() const { return out_seqs; }
     int get_iter() const { return iteration; }
     double get_atten() const { return attenuation; }
 
@@ -54,7 +54,9 @@ private:
     vector<llr_seq> vns_llr;    // llr during vn update
     llr_seq sum_llr;            // sum of all llr during vn update
     llr_seq initial_llr;        // channel info
-    vector<bit_pos_t> out_seqs;   // decoder output
+    vector<bit_t> out_seqs;   // decoder output
+
+    unsigned long long checkfailed = 0;
 };
 
 

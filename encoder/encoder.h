@@ -15,6 +15,7 @@
 class Encoder {
 public:
     Encoder() = default;
+    Encoder(size_t size) { assert(size > 0); coded_o.resize(size); }
     void run_encoder(const LDPC& cc, const info_fram_t& info);
 
     info_fram_t coded_o; // encoder output

@@ -31,13 +31,20 @@ add_subdirectory(decoder)
 list(APPEND EXTRA_LIBS decoder)
 
 add_executable(ldpc main.cpp)
-
 ## 指定链接库
 target_link_libraries(ldpc PUBLIC ${EXTRA_LIBS})
-
 # 指定 ${PROJECT_BINARY_DIR} 即为 build 目录
 # 指定 INTERFACE 之后不需要再添加 includes，即：${EXTRA_INCLUDES}
 target_include_directories(ldpc PUBLIC
+                           "${PROJECT_BINARY_DIR}"
+                           )
+
+add_executable(test_ldpc test.cpp)
+## 指定链接库
+target_link_libraries(test_ldpc PUBLIC ${EXTRA_LIBS})
+# 指定 ${PROJECT_BINARY_DIR} 即为 build 目录
+# 指定 INTERFACE 之后不需要再添加 includes，即：${EXTRA_INCLUDES}
+target_include_directories(test_ldpc PUBLIC
                            "${PROJECT_BINARY_DIR}"
                            )
 

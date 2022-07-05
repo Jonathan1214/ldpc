@@ -1,7 +1,7 @@
 #include "ldpc.h"
 
 void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, string _cnsfile,
-                string _vnsfile, char delim) {
+                string _vnsfile, char delim, char corr) {
 
     len = _len;
     bits = _bits;
@@ -13,22 +13,22 @@ void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, string _cnsfi
     H_row = bx*_gf_1;
     H_col = by*_gf_1;
 
-    cns.assign(H_row+1, nodeConn(by, 0));
-    vns.assign(H_col+1, nodeConn(bx, 0));
+    cns.assign(H_row, nodeConn(by, 0));
+    vns.assign(H_col, nodeConn(bx, 0));
 
-    read_conn(cns, _cnsfile, delim);
-    read_conn(vns, _vnsfile, delim);
+    read_conn(cns, _cnsfile, delim, corr);
+    read_conn(vns, _vnsfile, delim, corr);
 }
 
-void LDPC::read_conn(matrixConn& to_mat, string& file, char delim) {
+void LDPC::read_conn(matrixConn& to_mat, string& file, char delim, char corr) {
     int x = to_mat.size();
     int y = to_mat[0].size();
     ifstream fp;
     fp.open(file);
     assert(fp.is_open());
     string s;
-    int line = 1;
-    while (line <= x && getline(fp, s)) {
+    int line = 0;
+    while (line < x && getline(fp, s)) {
         // 分隔符可能是 ',' 或者 ' '
         int ix = 0;
         int st = ix;
@@ -36,10 +36,13 @@ void LDPC::read_conn(matrixConn& to_mat, string& file, char delim) {
             st = ix;
             while (ix < s.size() && s[ix] != delim) ix++;
             to_mat[line][i] = stoi(s.substr(st, ix - st));
+            assert(to_mat[line][i] + 1 >= corr);
+            to_mat[line][i] -= corr;
             ix++;
         }
         line++;
     }
+    assert(line == x);
 }
 
 

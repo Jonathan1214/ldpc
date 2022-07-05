@@ -30,7 +30,7 @@ namespace test_msa
 
 
 int main(int, char**) {
-    srand((unsigned)time(NULL));    // set random seed
+    srand(0);    // set random seed
     std::cout << "Hello, world!\n";
     std::cout << "good\n";
 
@@ -76,6 +76,6 @@ while (m--) {
 time_t ed = time(0);
 cout << "check ok code : " << ok_sum << endl;
 cout << "time used : " << ed - st << "s" << endl;
-
+print_any_thing(ac);
     return 0;
 }
