@@ -27,6 +27,22 @@ enum  de_algo {msa, spa};
 // extern class encoder;
 // extern class decoder;
 
+// for code configuration
+struct code_configure {
+    int len;
+    int bits;
+    int dc;
+    int dv;
+    int gf_1;
+    int iteration = 50;
+    float attenuation = 0.625;
+    string vnsfile;
+    string cnsfile;
+    string genfile;
+    char corr = 1;
+    char delim = ',';
+};
+
 class LDPC {
     friend void print_any_thing(LDPC& c);
     // friend class encoder;
@@ -38,10 +54,11 @@ public:
     using genMat_t     = vector<genMatCol_t>;
     LDPC() = default;
     LDPC(int _len, int _bits) : len(_len), bits(_bits), code_ratio(_bits/(_len+0.0)) {}
-
+    LDPC(const code_configure& ccf);
     // initial code
-    void initial(int _len, int _bits, int bx, int by, int gf, string _cnsfile,
-                string _vnsfile, char delim = ' ', char corr = 1);
+    void initial(int _len, int _bits, int bx, int by, int _gf_1, const string& _cnsfile,
+                const string& _vnsfile, char delim = ',', char corr = 1);
+    void init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr);
 
     int get_len()   const { return len;     }
     int get_info_len() const { return bits; } // !TODO
@@ -77,7 +94,7 @@ private:
     // string cns_file_path;       // cns_file_path
     // string vns_file_path;       // vns_file_path
 
-    void read_conn(matrixConn& to_mat, string& file, char delim, char corr);
+    void read_conn(matrixConn& to_mat, const string& file, char delim, char corr);
 };
 
 #endif

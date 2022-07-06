@@ -1,20 +1,23 @@
 #include "ldpc.h"
 
-void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, string _cnsfile,
-                string _vnsfile, char delim, char corr) {
+void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, const string& _cnsfile,
+                const string& _vnsfile, char delim, char corr) {
 
     len = _len;
     bits = _bits;
     dc = by;
     dv = bx;
     code_ratio = _bits / (_len + 0.0);
-
     gf_1 = _gf_1;
     H_row = bx*_gf_1;
     H_col = by*_gf_1;
 
-    cns.assign(H_row, nodeConn(by, 0));
-    vns.assign(H_col, nodeConn(bx, 0));
+    init_memo(_cnsfile, _vnsfile, delim, corr);
+}
+
+void LDPC::init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr) {
+    cns.assign(H_row, nodeConn(dc, 0));
+    vns.assign(H_col, nodeConn(dv, 0));
     genMat.assign(H_col, genMatCol_t(bits, 0));
 
     assert(cns.size() == H_row);
@@ -26,7 +29,21 @@ void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, string _cnsfi
 
 }
 
-void LDPC::read_conn(matrixConn& to_mat, string& file, char delim, char corr) {
+// read configuration from struct code_configure
+LDPC::LDPC(const code_configure& ccf) {
+    len = ccf.len;
+    bits = ccf.bits;
+    dc = ccf.dc;
+    dv = ccf.dv;
+    code_ratio = bits / (len + 0.0);
+    gf_1 = ccf.gf_1;
+    H_row = dv * gf_1;
+    H_col = dc * gf_1;
+
+    init_memo(ccf.cnsfile, ccf.vnsfile, ccf.delim, ccf.corr);
+}
+
+void LDPC::read_conn(matrixConn& to_mat, const string& file, char delim, char corr) {
     int x = to_mat.size();
     assert(x > 0);
     int y = to_mat[0].size();
