@@ -43,7 +43,7 @@ code_configure ccf;
                cout << " [--file]          read configuration from file    ex: config !!!!!!!!! NOT USED"  << endl; \
                cout << " [--decoding]      decoding selection              default or 0->msa 1->spa"       << endl; \
                cout << " [--iteration]     iteration of decoding           ex: 50"                         << endl; \
-               cout << " [--attenuation]   attenuation of msa 	           ex: 0.625"                      << endl; \
+               cout << " [--attenuation]   attenuation of msa 	           ex: 0625 (due to a bug in command line input, only integer input is OK)"          << endl; \
                cout << " [--encoding]      select encoding		           ex:"                            << endl; \
                cout << " [--genematrix]    generation matrix file          ex: ./matrix/G.csv"             << endl; \
                cout << " --help            get help information"                                           << endl; \
@@ -59,7 +59,7 @@ code_configure ccf;
                cout << " -G                Galois Fiels size minus 1       ex: 25"                         << endl; \
                cout << " [-d]              decoding selection              default or 0->msa 1->spa"       << endl; \
                cout << " [-i]              iteration of decoding           ex: 50"                         << endl; \
-               cout << " [-a]              attenuation of msa 	           ex: 0.625"                      << endl; \
+               cout << " [-a]              attenuation of msa 	           ex: 625 (due to a bug in command line input, only integer input is OK)"                      << endl; \
                cout << " [-f]              read configuration from file    ex: config !!!!!!!! NOT USE"    << endl; \
                cout << " [-e]              select encoding		           ex:"                            << endl; \
                cout << " [-g]              generation matrix file          ex: ./matrix/G.csv"             << endl; \
@@ -114,8 +114,9 @@ static inline void parse_arg(int argc, char *argv[]) {
             configure_d(ccf, iteration);
             break;
         case 'a':
-            printf("attenuation of decoding is %s\n", optarg); 
-            configure_f(ccf, attenuation);
+            printf("attenuation of decoding is 0.%s\n", optarg); 
+            // a stupid bug... cannot read 0.625 from command line
+            ccf.attenuation = atoi(optarg) / 1000.0;
             break;
         case 'g': 
             printf("genematrix of code is %s\n", optarg); 
@@ -205,6 +206,7 @@ int main(int argc, char *argv[])
 {
     srand(0); // set random seed
               //  test_decoder();
+    cout << "parse start " << endl;
     parse_arg(argc, argv);
 
     test_decoder();
