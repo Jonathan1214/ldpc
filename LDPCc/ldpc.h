@@ -29,18 +29,20 @@ enum  de_algo {msa, spa};
 
 // for code configuration
 struct code_configure {
-    int len;
-    int bits;
-    int dc;
-    int dv;
-    int gf_1;
-    int iteration = 50;
-    float attenuation = 0.625;
-    string vnsfile;
-    string cnsfile;
-    string genfile;
-    char corr = 1;
-    char delim = ',';
+    int len;                    // code length
+    int row;                    // row off H matrix
+    int bits;                   // information bits length
+    int dc;                     // row weight of H matrix
+    int dv;                     // col weight of H matrix
+    int gf_1;                   // Galoris Field minus 1
+    int iteration = 50;         // iteration of decoding, default 50
+    int encoding = 0;           // select encoding
+    float attenuation = 0.625;  // attenuation of MSA
+    string vnsfile;             // variable node connection file
+    string cnsfile;             // check node connection file
+    string genfile;             // generation file
+    char corr = 1;              // correction of connection file
+    char delim = ',';           // delim of connection file
 };
 
 class LDPC {
@@ -59,24 +61,25 @@ public:
     void initial(int _len, int _bits, int bx, int by, int _gf_1, const string& _cnsfile,
                 const string& _vnsfile, char delim = ',', char corr = 1);
     void init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr);
+    void init_memo(const string& _cnsfile, const string& _vnsfile, const string& _genfile, char delim, char corr);
 
-    int get_len()   const { return len;     }
-    int get_info_len() const { return bits; } // !TODO
-    bit_t get_gen_xy(int i, int j) const {
+    inline int get_len()   const { return len; }
+    inline int get_info_len() const { return bits; } // !TODO
+    inline bit_t get_gen_xy(int i, int j) const {
         assert(i < genMat.size() && j < genMat[0].size());
         return genMat[i][j]; };    // !TODO
-    int get_bits()  const { return bits;    }
-    int get_dc()    const { return dc;      }
-    int get_dv()    const { return dv;      }
-    int get_gf()    const { return gf_1;    }
-    int get_row()   const { return H_row;   }
-    int get_col()   const { return H_col;   }
-    pos_t get_cns_xy(int x, int y) const { return cns[x][y]; }
-    pos_t get_vns_xy(int x, int y) const { return vns[x][y]; }
+    inline int get_bits()  const { return bits;    }
+    inline int get_dc()    const { return dc;      }
+    inline int get_dv()    const { return dv;      }
+    inline int get_gf()    const { return gf_1;    }
+    inline int get_row()   const { return H_row;   }
+    inline int get_col()   const { return H_col;   }
+    inline pos_t get_cns_xy(int x, int y) const { return cns[x][y]; }
+    inline pos_t get_vns_xy(int x, int y) const { return vns[x][y]; }
 
-    double get_code_ratio() const { return code_ratio; }
-    int get_cns_size() const { return cns.size(); }
-    string get_H_size() const { return to_string(H_row) + "x" + to_string(H_col); }
+    inline double get_code_ratio() const { return code_ratio; }
+    inline int get_cns_size() const { return cns.size(); }
+    inline string get_H_size() const { return to_string(H_row) + "x" + to_string(H_col); }
     void set_genMat(const string& file, char delim);
 
 private:
