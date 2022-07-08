@@ -1,5 +1,4 @@
 #include <iostream>
-#include <direct.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <ctime>
@@ -149,8 +148,8 @@ static inline void parse_arg(int argc, char *argv[]) {
             printf("error usage\n");
             exit(-1);
         }
-        if (ccf.encoding && ccf.genfile.size() == 0) exit(-3);
     }
+    if (ccf.encoding && ccf.genfile.size() == 0) exit(-3);
     return ;
 }
 
