@@ -60,8 +60,8 @@ public:
     // initial code
     void initial(int _len, int _bits, int bx, int by, int _gf_1, const string& _cnsfile,
                 const string& _vnsfile, char delim = ',', char corr = 1);
-    void init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr);
-    void init_memo(const string& _cnsfile, const string& _vnsfile, const string& _genfile, char delim, char corr);
+    inline void init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr);
+    inline void init_memo(const string& _cnsfile, const string& _vnsfile, const string& _genfile, char delim, char corr);
 
     inline int get_len()   const { return len; }
     inline int get_info_len() const { return bits; } // !TODO

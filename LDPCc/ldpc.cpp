@@ -17,29 +17,27 @@ void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, const string&
 
 void LDPC::init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr) {
     cns.assign(H_row, nodeConn(dc, 0));
-    vns.assign(H_col, nodeConn(dv, 0));
-
     assert(cns.size() == H_row);
-    assert(vns.size() == H_col);
-    assert(genMat.size() == H_col);
-
     read_conn(cns, _cnsfile, delim, corr);
+
+    vns.assign(H_col, nodeConn(dv, 0));
+    assert(vns.size() == H_col);
     read_conn(vns, _vnsfile, delim, corr);
-    
 }
 
 void LDPC::init_memo(const string& _cnsfile, const string& _vnsfile, const string& _genfile, char delim, char corr) {
     cns.assign(H_row, nodeConn(dc, 0));
-    vns.assign(H_col, nodeConn(dv, 0));
-    genMat.assign(H_col, genMatCol_t(bits, 0));
-
     assert(cns.size() == H_row);
-    assert(vns.size() == H_col);
-    assert(genMat.size() == H_col);
-
     read_conn(cns, _cnsfile, delim, corr);
+
+    vns.assign(H_col, nodeConn(dv, 0));
+    assert(vns.size() == H_col);
     read_conn(vns, _vnsfile, delim, corr);
+
+    genMat.assign(H_col, genMatCol_t(bits, 0));
+    assert(genMat.size() == H_col);
     set_genMat(_genfile, ' ');
+
 }
 
 // read configuration from struct code_configure
@@ -52,8 +50,10 @@ LDPC::LDPC(const code_configure& ccf) {
     gf_1 = ccf.gf_1;
     H_row = dv * gf_1;
     H_col = dc * gf_1;
-
-    init_memo(ccf.cnsfile, ccf.vnsfile, ccf.genfile, ccf.delim, ccf.corr);
+    if (ccf.encoding)
+        init_memo(ccf.cnsfile, ccf.vnsfile, ccf.genfile, ccf.delim, ccf.corr);
+    else
+        init_memo(ccf.cnsfile, ccf.vnsfile, ccf.delim, ccf.corr);
 }
 
 void LDPC::read_conn(matrixConn& to_mat, const string& file, char delim, char corr) {
