@@ -1,5 +1,53 @@
 #include "decoder.h"
 
+#define debug_vn(vn) { \
+    cout << "\n ---> iteration vn" << iter << endl; \
+    cout << " llr init: " << initial_llr[vn] << endl; \
+    for (int j = 0; j < cc.get_dv(); ++j) { \
+        if (cc.get_vns_xy(vn, j) < 0) continue; \
+        cout << cns_llr[cc.get_vns_xy(vn, j)][vn / cc.get_gf()] << " "; \
+    } \
+    cout << endl; \
+    cout << sum_llr[vn] << endl; \
+} \
+
+#define debug_cn(cn) { \
+    cout << "\n ---> iteration cn " << iter << " atten " <<endl; \
+    cout << ">> input "; \
+    for (int j = 0; j < cc.get_dc(); ++j) { \
+        if (cc.get_cns_xy(cn, j) < 0) continue; \
+        cout << vns_llr[cc.get_cns_xy(cn, j)][cn / cc.get_gf()] << " "; \
+    } \
+    cout << "\n>> output "; \
+    for (int i = 0; i < cc.get_dc(); ++i) { \
+        if (cc.get_cns_xy(cn, i) < 0) cout << " x "; \
+        cout << cns_llr[cn][i] << " "; \
+    } \
+    cout << endl; \
+} \
+
+void
+Decoder::initial(const LDPC& cc) {
+    initial_llr.assign(cc.get_len(), 0);
+    cns_llr.assign(cc.get_row(), llr_seq(cc.get_dc(), 0));
+    vns_llr.assign(cc.get_col(), llr_seq(cc.get_dv(), 0));
+    sum_llr.assign(cc.get_col(), 0);
+    out_seqs.assign(cc.get_col(), 0);
+}
+
+void Decoder::initial(const code_configure& ccf) {
+    initial_llr.assign(ccf.len, 0);
+    cns_llr.assign(ccf.row, llr_seq(ccf.dc, 0));
+    vns_llr.assign(ccf.len, llr_seq(ccf.dv, 0));
+    sum_llr.assign(ccf.len, 0);
+    out_seqs.assign(ccf.len, 0);
+}
+
+Decoder::Decoder(const code_configure& ccf)
+    : iteration(ccf.iteration), attenuation(ccf.attenuation) {
+    initial(ccf);
+}
+
 int
 Decoder::run_decoder(const LDPC &cc, const rece_seq &sq, double ebn0, de_algo algo) {
     // 简单判断长度是否相等
@@ -29,11 +77,6 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
     int len = cc.get_len();
     get_llr(sq, cc.get_code_ratio(), ebn0);
 
-    cns_llr.assign(cc.get_row(), llr_seq(cc.get_dc(), 0));
-    vns_llr.assign(cc.get_col(), llr_seq(cc.get_dv(), 0));
-    sum_llr.assign(cc.get_col(), 0);
-    out_seqs.assign(cc.get_col(), 0);
-
     // initial matrix
     for (int i = 0; i < cc.get_col(); ++i) {
         for (int j = 0; j < cc.get_dv(); ++j) {
@@ -46,7 +89,14 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
     bool decode_ok = false;
     while (iter < iteration && !decode_ok) {
         cn_update(cc);
+#ifndef NDEBUG
+debug_cn(104);
+#endif
         vn_update(cc);
+
+#ifndef NDEBUG
+debug_vn(7);
+#endif
 
         // check all
         for (int i = 0; i < cc.get_col(); ++i) {
@@ -57,7 +107,7 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
         iter++;
     } // per iteration or decode_ok
     if (!decode_ok) checkfailed++;
-#ifndef DEBUG
+#ifndef NDEBUG
     if (!decode_ok) {
         printf("check bad %u \n", checkfailed);
     }
@@ -71,10 +121,10 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
 */
 void 
 Decoder::cn_update(const LDPC &cc) {
-    vector<char> sign_of_llr(cc.get_dc(), 0); // 0 means >= 0 else < 0
+    info_fram_t sign_of_llr(cc.get_dc(), 0); // 0 means >= 0 else < 0
     for (int i = 0; i < cc.get_row(); ++i) {
         llr_width min_llr = 10000, sub_min_llr = 10000;
-        char sign_all = 0;
+        bit_t sign_all = 0;
         pos_t cn_index = i / cc.get_gf();
         pos_t min_llr_index = 0;
         pos_t vn_index = 0;
@@ -175,7 +225,6 @@ Decoder::check(const LDPC &cc) {
 */
 void
 Decoder::get_llr(const rece_seq &sq, double code_ratio, double ebn0) {
-    initial_llr.assign(sq.size()+1, 0);
     double EsN0 = code_ratio * pow(10, ebn0/10.0);
     for (int i = 0; i < sq.size(); ++i) {
         initial_llr[i] = 4 * sq[i] * EsN0;

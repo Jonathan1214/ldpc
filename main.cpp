@@ -27,6 +27,7 @@ void AWGN(void)
 
 code_configure ccf;
 
+#define initial_code(code) do { for (auto &c : code) c = rand() % 2; } while (0);
 #define configure_d(code_c, param) code_c.param = atoi(optarg);
 #define configure(code_c, param) code_c.param = string(optarg);
 #define configure_f(code_c, param) code_c.param = atof(optarg);
@@ -62,7 +63,7 @@ code_configure ccf;
                cout << " [-a]              attenuation of msa 	           ex: 625 (due to a bug in command line input, only integer input is OK)"                      << endl; \
                cout << " [-f]              read configuration from file    ex: config !!!!!!!! NOT USE"    << endl; \
                cout << " [-e]              select encoding		           ex:"                            << endl; \
-               cout << " [-g]              generation matrix file          ex: ./matrix/G.csv"             << endl; \
+               cout << " [-x]              generation matrix file          ex: ./matrix/G.csv"             << endl; \
                cout << " -h                get help information"                                           << endl; \
 
 static inline void parse_arg(int argc, char *argv[]) {
@@ -75,7 +76,7 @@ static inline void parse_arg(int argc, char *argv[]) {
         {"decoding"    , optional_argument, NULL, 'd'},
         {"iteration"   , optional_argument, NULL, 'i'},
         {"attenuation" , optional_argument, NULL, 'a'},
-        {"genematrix"  , optional_argument, NULL, 'g'},
+        {"genematrix"  , required_argument, NULL, 'x'},
         {"encoding"    , no_argument      , NULL, 'e'},
         {"help"        , no_argument      , NULL, 'h'},
         {"cnweight"    , required_argument, NULL, 'C'},
@@ -83,7 +84,7 @@ static inline void parse_arg(int argc, char *argv[]) {
         {"gfield"      , required_argument, NULL, 'G'},
     };
     int o;
-    while ( (o = getopt_long(argc, argv, "ehl:r:b:c:v:C:V:G:d::i::a::g::", table, NULL)) != -1) {
+    while ( (o = getopt_long(argc, argv, "ehl:r:b:c:v:C:V:G:d::i::a::x:", table, NULL)) != -1) {
         switch (o) {
         case 'l':
             printf("length of code is %s\n", optarg);
@@ -91,7 +92,7 @@ static inline void parse_arg(int argc, char *argv[]) {
             break;
         case 'r':
             printf("row of code is %s\n", optarg);
-            configure_d(ccf, bits);
+            configure_d(ccf, row);
             break;
         case 'b':
             printf("bits of code is %s\n", optarg);
@@ -114,12 +115,13 @@ static inline void parse_arg(int argc, char *argv[]) {
             configure_d(ccf, iteration);
             break;
         case 'a':
-            printf("attenuation of decoding is 0.%s\n", optarg); 
+            printf("attenuation of decoding is 0.%s\n", optarg);
             // a stupid bug... cannot read 0.625 from command line
             ccf.attenuation = atoi(optarg) / 1000.0;
             break;
-        case 'g': 
+        case 'x': 
             printf("genematrix of code is %s\n", optarg); 
+            assert(optarg != NULL);
             configure(ccf, genfile);
             break;
         case 'C': 
@@ -136,6 +138,8 @@ static inline void parse_arg(int argc, char *argv[]) {
             break;
         case 'e': 
             printf("encoding selection is %s\n", optarg); 
+            // select encoding
+            ccf.encoding = 1;
             break;
         case 'h': 
             HELP();
@@ -145,10 +149,69 @@ static inline void parse_arg(int argc, char *argv[]) {
             printf("error usage\n");
             exit(-1);
         }
+        if (ccf.encoding && ccf.genfile.size() == 0) exit(-3);
     }
     return ;
 }
 
+void parse_input(const string& s, info_fram_t& out, char delim) {
+    int bits = out.size();
+    int ix = 0;
+    int st = 0;
+    int i = 0;
+    for (; i < bits && ix < s.size(); ++i) {
+        st = ix;
+        while (ix < s.size() && s[ix] != delim) ix++;
+        out[i] = stoi(s.substr(st, ix - st));
+        assert(out[i] == 0 || out[i] == 1);
+        ix++;
+    }
+    assert(i == bits);
+}
+
+bool comp_equal(info_fram_t& case_out, info_fram_t& coded_out) {
+    assert(case_out.size() == coded_out.size());
+    int size = case_out.size();
+    for (int i = 0; i < size; ++i) {
+        if (case_out[i] != coded_out[i]) return false;
+    }
+    return true;
+}
+
+void test_code(const LDPC& ac, Encoder& encoder) {
+    ifstream fp_case_in, fp_case_out;
+    string case_in_file("../../ldpc_gf257_multi_code_ratio/base4x8/matrix/case_in.csv");
+    string case_out_file("../../ldpc_gf257_multi_code_ratio/base4x8/matrix/case_out.csv");
+    fp_case_in.open(case_in_file);
+    fp_case_out.open(case_out_file);
+    assert(fp_case_in.is_open());
+    string s;
+    int len = ac.get_len();
+    int bits = ac.get_info_len();
+    char delim = ' ';
+    int line = 0;
+    info_fram_t case_in(bits, 0);
+    info_fram_t case_out(len, 0);
+    int ok_cnt = 0;
+    while (line < ac.get_len() && getline(fp_case_in, s)) {
+        parse_input(s, case_in, delim);
+        if (!getline(fp_case_out, s)) exit(-1);
+        parse_input(s, case_out, delim);
+
+        encoder.run_encoder(ac, case_in);
+        if (comp_equal(case_out, encoder.coded_o)) ok_cnt++;
+        else {
+            cout << "ok cnt : " << ok_cnt << endl;
+            exit(-3);
+        }
+
+        line++;
+    }
+    fp_case_in.close();
+    fp_case_out.close();
+    cout << "input " << line << " case " << endl;
+    cout << "encoder pass" << endl;
+}
 
 void test_decoder()
 {
@@ -169,21 +232,28 @@ void test_decoder()
     double ebn0 = 2.3;
     double esn0 = ac.get_code_ratio() * pow(10, ebn0 / 10.0);
 
-    // construct a decoder
-    Decoder decoder(ccf.iteration, ccf.attenuation);
+    // construct a decoder and encoder
+    Decoder decoder(ccf);
+    Encoder encoder(ccf.len);
+
+    test_code(ac, encoder);
 
     // base sequence
-    vector<char> basecode(ac.get_col(), 0);
-    rece_seq re_seqs(ac.get_col(), 1);
-    int m = 10000;
+    info_fram_t basecode(ac.get_bits(), 0);
+    // initial code
+    rece_seq re_seqs(ac.get_col(), 0);
+    int m = 1;
     cout << "test " << m << " code" << endl;
     int ok_sum = 0;
     time_t st = time(0);
     while (m--)
     {
-        for (int i = 0; i < basecode.size(); ++i)
+        initial_code(basecode);
+        encoder.run_encoder(ac, basecode);
+
+        for (int i = 0; i < re_seqs.size(); ++i)
         {
-            re_seqs[i] = 1 - 2 * basecode[i];
+            re_seqs[i] = 1 - 2 * encoder.coded_o[i];
         }
 
         // pass channel
