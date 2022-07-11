@@ -24,9 +24,20 @@ void AWGN(void)
     noise = G * cos(2 * PI * B);
 }
 
-code_configure ccf;
+time_t curtime;
+tm* logtime;
 
-#define initial_code(code) do { for (auto &c : code) c = rand() % 2; } while (0);
+code_configure ccf;
+const int MAX_BLK = 1e6;
+#define log_de(ebn0, tot_blk, err_blk, type) do { \
+        curtime = time(0); \
+        logtime = localtime(&curtime); \
+        fprintf(stdout, type" %02d-%02d-%02d %02d:%02d:%02d, %6.2f, %10llu, %2d\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
+                                logtime->tm_hour, logtime->tm_min, logtime->tm_sec, ebn0, tot_blk, err_blk); \
+        fflush(stdout); \
+    } while (0)\
+
+#define initial_code(code) do { for (auto &c : code) c = rand() % 2; } while (0)
 #define configure_d(code_c, param) code_c.param = atoi(optarg);
 #define configure(code_c, param) code_c.param = string(optarg);
 #define configure_f(code_c, param) code_c.param = atof(optarg);
@@ -40,6 +51,9 @@ code_configure ccf;
                cout << " --cnweight        check node weght of code	       ex: 8"                          << endl; \
                cout << " --vnweight        variable node weight of code    ex: 4"                          << endl; \
                cout << " --gfield          Galois Fiels size minus 1       ex: 256"                        << endl; \
+               cout << " --sebno           start ebn0 of simulation        ex: 2.5"                        << endl; \
+               cout << " --stepebno        step ebn0 of simulation         ex: 0.2"                        << endl; \
+               cout << " --eebno           end  ebn0 of simulation         ex: 3.0"                        << endl; \
                cout << " [--file]          read configuration from file    ex: config !!!!!!!!! NOT USED"  << endl; \
                cout << " [--decoding]      decoding selection              default or 0->msa 1->spa"       << endl; \
                cout << " [--iteration]     iteration of decoding           ex: 50"                         << endl; \
@@ -57,6 +71,9 @@ code_configure ccf;
                cout << " -C                check node weght of code	       ex: 8"                          << endl; \
                cout << " -V                variable node weight of code    ex: 4"                          << endl; \
                cout << " -G                Galois Fiels size minus 1       ex: 25"                         << endl; \
+               cout << " -s                start ebn0 of simulation        ex: 2.5"                        << endl; \
+               cout << " -S                step ebn0 of simulation         ex: 0.2"                        << endl; \
+               cout << " -E                end  ebn0 of simulation         ex: 3.0"                        << endl; \
                cout << " [-d]              decoding selection              default or 0->msa 1->spa"       << endl; \
                cout << " [-i]              iteration of decoding           ex: 50"                         << endl; \
                cout << " [-a]              attenuation of msa 	           ex: 625 (due to a bug in command line input, only integer input is OK)"                      << endl; \
@@ -81,9 +98,12 @@ static inline void parse_arg(int argc, char *argv[]) {
         {"cnweight"    , required_argument, NULL, 'C'},
         {"vnweight"    , required_argument, NULL, 'V'},
         {"gfield"      , required_argument, NULL, 'G'},
-    };
+        {"sebno"       , required_argument, NULL, 's'},
+        {"stepebno"    , required_argument, NULL, 'S'},
+        {"eebno"       , required_argument, NULL, 'E'},
+    }; 
     int o;
-    while ( (o = getopt_long(argc, argv, "ehl:r:b:c:v:C:V:G:d::i::a::x:", table, NULL)) != -1) {
+    while ( (o = getopt_long(argc, argv, "ehl:r:b:c:v:C:V:G:d::i::a::x:s:S:E:", table, NULL)) != -1) {
         switch (o) {
         case 'l':
             printf("length of code is %s\n", optarg);
@@ -135,6 +155,18 @@ static inline void parse_arg(int argc, char *argv[]) {
             printf("GF of code is %s\n", optarg); 
             configure_d(ccf, gf_1);
             break;
+        case 's': 
+            printf("start ebno of simulation is %s\n", optarg); 
+            configure_f(ccf, sebn0);
+            break;
+        case 'S': 
+            printf("step ebno of simulation is %s\n", optarg); 
+            configure_f(ccf, spebn0);
+            break;
+        case 'E': 
+            printf("end ebno of simulation %s\n", optarg); 
+            configure_f(ccf, eebn0);
+            break;
         case 'e': 
             printf("encoding selection is %s\n", optarg); 
             // select encoding
@@ -153,6 +185,7 @@ static inline void parse_arg(int argc, char *argv[]) {
     return ;
 }
 
+
 void test_decoder()
 {
     LDPC ac(ccf);
@@ -165,54 +198,53 @@ void test_decoder()
     cout << ac.get_cns_size() << endl;
     cout << ac.get_H_size() << endl;
     cout << sizeof ac << endl;
-    cout << "---------------------------" << endl;
+    fprintf(stdout, "----------------\n[START]\n");
 
     // channel condition set
-    double ebn0 = 3.4;
-    double esn0 = ac.get_code_ratio() * pow(10, ebn0 / 10.0);
 
 
     // base sequence
     info_fram_t basecode(ac.get_bits(), 0);
     // initial code
     rece_seq re_seqs(ac.get_col(), 0);
-    int m = 1;
-    cout << "test " << m << " code" << endl;
-    int ok_sum = 0;
     time_t st = time(0);
-    while (m--)
-    {
-        initial_code(basecode);
-        if (ccf.encoding) encoder.run_encoder(ac, basecode);
-
-        for (int i = 0; i < re_seqs.size(); ++i)
+    for (float ebn0 = ccf.sebn0; ebn0 < ccf.eebn0 + 0.0001; ebn0 += ccf.spebn0) {
+        double esn0 = ac.get_code_ratio() * pow(10, ebn0 / 10.0);
+        unsigned long long tot_blk = 0;
+        int err_blk = 0;
+        while (err_blk < 10)
         {
-            re_seqs[i] = 1 - 2 * encoder.coded_o[i];
-        }
+            initial_code(basecode);
+            if (ccf.encoding) encoder.run_encoder(ac, basecode);
 
-        // pass channel
-        for (int i = 0; i < re_seqs.size(); ++i)
-        {
-            AWGN();
-            re_seqs[i] = re_seqs[i] + 1.0 / sqrt(2.0 * esn0) * noise;
-        }
+            for (int i = 0; i < re_seqs.size(); ++i)
+            {
+                re_seqs[i] = 1 - 2 * encoder.coded_o[i];
+            }
 
-        // run decoder
-        ok_sum += decoder.run_decoder(ac, re_seqs, ebn0);
+            // pass channel
+            for (int i = 0; i < re_seqs.size(); ++i)
+            {
+                AWGN();
+                re_seqs[i] = re_seqs[i] + 1.0 / sqrt(2.0 * esn0) * noise;
+            }
+
+            // run decoder
+            err_blk += decoder.run_decoder(ac, re_seqs, ebn0);
+            tot_blk++;
+            if (tot_blk % MAX_BLK == 0)
+                log_de(ebn0, tot_blk, err_blk, "[ROUTINE]");
+        }
+        log_de(ebn0, tot_blk, err_blk, "[OK]");
     }
-    time_t ed = time(0);
-    cout << "check ok code : " << ok_sum << endl;
-    cout << "time used : " << ed - st << "s" << endl;
-    print_any_thing(ac);
+    fprintf(stdout, "[END]----------------\n\n");
 }
 
 int main(int argc, char *argv[])
 {
     srand(0); // set random seed
               //  test_decoder();
-    cout << "parse start " << endl;
     parse_arg(argc, argv);
-
     test_decoder();
     return 0;
 }

@@ -86,8 +86,8 @@ Decoder::run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0) {
 
     // per iteration
     int iter = 0;
-    bool decode_ok = false;
-    while (iter < iteration && !decode_ok) {
+    int decode_bad = 1;
+    while (iter < iteration && decode_bad) {
         cn_update(cc);
 #ifndef NDEBUG
 debug_cn(104);
@@ -103,16 +103,16 @@ debug_vn(7);
             out_seqs[i] = (sum_llr[i] >= 0) ? 0 : 1;
         }
 
-        decode_ok = check(cc) == 0;
+        decode_bad = check(cc);
         iter++;
-    } // per iteration or decode_ok
-    if (!decode_ok) checkfailed++;
+    } // per iteration or decode_bad
+    if (decode_bad) checkfailed++;
 #ifndef NDEBUG
-    if (!decode_ok) {
+    if (decode_bad) {
         printf("check bad %u \n", checkfailed);
     }
 #endif
-    return decode_ok;
+    return decode_bad;
 }
 
 /**@brief check node info update
@@ -213,9 +213,9 @@ Decoder::check(const LDPC &cc) {
             if (cc.get_cns_xy(i, j) < 0) continue;
             row_check ^= out_seqs[cc.get_cns_xy(i, j)]; // with correction
         }
-        checksum += row_check;
+        if (row_check > 0) return 1;
     }
-    return checksum;
+    return 0;
 }
 
 /**@brief calc LLR from received sequence at channel condition ebn0

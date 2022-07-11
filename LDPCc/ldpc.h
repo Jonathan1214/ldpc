@@ -35,6 +35,9 @@ struct code_configure {
     int dc;                     // row weight of H matrix
     int dv;                     // col weight of H matrix
     int gf_1;                   // Galoris Field minus 1
+    float sebn0 = 2;             // start ebn0 of simulation
+    float spebn0 = 0.2;         // step ebn0 of simulation
+    float eebn0 = 3;            // end ebn0 of simulation
     int iteration = 50;         // iteration of decoding, default 50
     int encoding = 0;           // select encoding
     float attenuation = 0.625;  // attenuation of MSA
