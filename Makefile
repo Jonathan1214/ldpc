@@ -44,8 +44,11 @@ all:
 
 clean:
 	rm -f $(OBJ)
+	@echo clean all obj done
+
+cleanall: clean
 	rm -f $(TARGET)
-	@echo clean done
+	@echo clean target
 
 enc :=
 out ?=
