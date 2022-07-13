@@ -41,6 +41,8 @@ public:
     inline int get_iter() const { return iteration; }
     inline float get_atten() const { return attenuation; }
 
+    info_fram_t out_seqs;     // decoder output
+
 private:
     int run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0);
     int run_use_spa(const LDPC &cc, const rece_seq &sq, double ebn0);
@@ -56,7 +58,6 @@ private:
     vector<llr_seq> vns_llr;    // llr during vn update
     llr_seq sum_llr;            // sum of all llr during vn update
     llr_seq initial_llr;        // channel info
-    info_fram_t out_seqs;     // decoder output
 
     unsigned long long checkfailed = 0;
 };

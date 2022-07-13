@@ -24,16 +24,40 @@ void AWGN(void)
     noise = G * cos(2 * PI * B);
 }
 
+/**@brief count error bits inside frame
+ * @param[in] iseq encoder output sequence
+ * @param[in] oseq decoder output sequence
+ *
+*/
+inline int get_err_bits(info_fram_t& iseq, info_fram_t& oseq) {
+    assert(iseq.size() == oseq.size());
+    int err = 0;
+    for (int i = 0; i < iseq.size(); ++i)
+        if (iseq[i] ^ oseq[i])
+            err++;
+    return err;
+}
+
 time_t curtime;
 tm* logtime;
 
 code_configure ccf;
 const int MAX_BLK = 1e6;
-#define log_de(ebn0, tot_blk, err_blk, type) do { \
+#define log_de(ebn0, tot_blk, err_blk, err_bits, type) do { \
         curtime = time(0); \
         logtime = localtime(&curtime); \
-        fprintf(stdout, type" %02d-%02d-%02d %02d:%02d:%02d, %6.2f, %10llu, %2d\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
-                                logtime->tm_hour, logtime->tm_min, logtime->tm_sec, ebn0, tot_blk, err_blk); \
+        fprintf(stdout, type" %02d-%02d-%02d %02d:%02d:%02d, %6.2f, %10llu, %4d, %5d\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
+                                logtime->tm_hour, logtime->tm_min, logtime->tm_sec, \
+                                ebn0, tot_blk, err_blk, err_bits); \
+        fflush(stdout); \
+    } while (0)\
+
+#define log_de_ratio(ebn0, tot_blk, err_blk, err_bits, frame_len, type) do { \
+        curtime = time(0); \
+        logtime = localtime(&curtime); \
+        fprintf(stdout, type" %02d-%02d-%02d %02d:%02d:%02d, %6.2f, %10llu, %4d, %5d, %.10f, %.10f\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
+                                logtime->tm_hour, logtime->tm_min, logtime->tm_sec, \
+                                ebn0, tot_blk, err_blk, err_bits, (double)err_blk/tot_blk, (double)err_bits/tot_blk/frame_len); \
         fflush(stdout); \
     } while (0)\
 
@@ -42,45 +66,45 @@ const int MAX_BLK = 1e6;
 #define configure(code_c, param) code_c.param = string(optarg);
 #define configure_f(code_c, param) code_c.param = atof(optarg);
 #define HELP() cout << "This is a QC-LDPC simulator which show how well a code is\n"                       << endl; \
-               cout << "Here is the configuration of the simulator:"                                       << endl; \
-               cout << " --len             code length                     ex: 2048"                       << endl; \
-               cout << " --row             row of H matrix                 ex: 1024"                       << endl; \
-               cout << " --bits            info bits length                ex: 1027"                       << endl; \
-               cout << " --cnfile          row connection file             ex: ./matrix/CnsCon.csv"        << endl; \
-               cout << " --vnfile          col connection file             ex: ./matrix/VnsCon.csv"        << endl; \
-               cout << " --cnweight        check node weght of code	       ex: 8"                          << endl; \
-               cout << " --vnweight        variable node weight of code    ex: 4"                          << endl; \
-               cout << " --gfield          Galois Fiels size minus 1       ex: 256"                        << endl; \
-               cout << " --sebno           start ebn0 of simulation        ex: 2.5"                        << endl; \
-               cout << " --stepebno        step ebn0 of simulation         ex: 0.2"                        << endl; \
-               cout << " --eebno           end  ebn0 of simulation         ex: 3.0"                        << endl; \
-               cout << " [--file]          read configuration from file    ex: config !!!!!!!!! NOT USED"  << endl; \
-               cout << " [--decoding]      decoding selection              default or 0->msa 1->spa"       << endl; \
-               cout << " [--iteration]     iteration of decoding           ex: 50"                         << endl; \
-               cout << " [--attenuation]   attenuation of msa 	           ex: 0625 (due to a bug in command line input, only integer input is OK)"          << endl; \
-               cout << " [--encoding]      select encoding		           ex:"                            << endl; \
-               cout << " [--genematrix]    generation matrix file          ex: ./matrix/G.csv"             << endl; \
-               cout << " --help            get help information"                                           << endl; \
-               cout << endl; \
-               cout << "Also, you can use short args"                                                      << endl; \
-               cout << " -l                code length                     ex: 2048"                       << endl; \
-               cout << " -r                row of H matrix                 ex: 1024"                       << endl; \
-               cout << " -b                info bits length                ex: 1027"                       << endl; \
-               cout << " -c                row connection file	           ex: ./matrix/CnsCon.csv"        << endl; \
-               cout << " -v                col connection file             ex: ./matrix/VnsCon.csv"        << endl; \
-               cout << " -C                check node weght of code	       ex: 8"                          << endl; \
-               cout << " -V                variable node weight of code    ex: 4"                          << endl; \
-               cout << " -G                Galois Fiels size minus 1       ex: 25"                         << endl; \
-               cout << " -s                start ebn0 of simulation        ex: 2.5"                        << endl; \
-               cout << " -S                step ebn0 of simulation         ex: 0.2"                        << endl; \
-               cout << " -E                end  ebn0 of simulation         ex: 3.0"                        << endl; \
-               cout << " [-d]              decoding selection              default or 0->msa 1->spa"       << endl; \
-               cout << " [-i]              iteration of decoding           ex: 50"                         << endl; \
-               cout << " [-a]              attenuation of msa 	           ex: 625 (due to a bug in command line input, only integer input is OK)"                      << endl; \
-               cout << " [-f]              read configuration from file    ex: config !!!!!!!! NOT USE"    << endl; \
-               cout << " [-e]              select encoding		           ex:"                            << endl; \
-               cout << " [-x]              generation matrix file          ex: ./matrix/G.csv"             << endl; \
-               cout << " -h                get help information"                                           << endl; \
+                cout << "Here is the configuration of the simulator:"                                       << endl; \
+                cout << " --len             code length                     ex: 2048"                       << endl; \
+                cout << " --row             row of H matrix                 ex: 1024"                       << endl; \
+                cout << " --bits            info bits length                ex: 1027"                       << endl; \
+                cout << " --cnfile          row connection file             ex: ./matrix/CnsCon.csv"        << endl; \
+                cout << " --vnfile          col connection file             ex: ./matrix/VnsCon.csv"        << endl; \
+                cout << " --cnweight        check node weght of code	       ex: 8"                          << endl; \
+                cout << " --vnweight        variable node weight of code    ex: 4"                          << endl; \
+                cout << " --gfield          Galois Fiels size minus 1       ex: 256"                        << endl; \
+                cout << " --sebno           start ebn0 of simulation        ex: 2.5"                        << endl; \
+                cout << " --stepebno        step ebn0 of simulation         ex: 0.2"                        << endl; \
+                cout << " --eebno           end  ebn0 of simulation         ex: 3.0"                        << endl; \
+                cout << " [--file]          read configuration from file    ex: config !!!!!!!!! NOT USED"  << endl; \
+                cout << " [--decoding]      decoding selection              default or 0->msa 1->spa"       << endl; \
+                cout << " [--iteration]     iteration of decoding           ex: 50"                         << endl; \
+                cout << " [--attenuation]   attenuation of msa 	           ex: 0625 (due to a bug in command line input, only integer input is OK)"          << endl; \
+                cout << " [--encoding]      select encoding		           ex:"                            << endl; \
+                cout << " [--genematrix]    generation matrix file          ex: ./matrix/G.csv"             << endl; \
+                cout << " --help            get help information"                                           << endl; \
+                cout << endl; \
+                cout << "Also, you can use short args"                                                      << endl; \
+                cout << " -l                code length                     ex: 2048"                       << endl; \
+                cout << " -r                row of H matrix                 ex: 1024"                       << endl; \
+                cout << " -b                info bits length                ex: 1027"                       << endl; \
+                cout << " -c                row connection file	           ex: ./matrix/CnsCon.csv"        << endl; \
+                cout << " -v                col connection file             ex: ./matrix/VnsCon.csv"        << endl; \
+                cout << " -C                check node weght of code	       ex: 8"                          << endl; \
+                cout << " -V                variable node weight of code    ex: 4"                          << endl; \
+                cout << " -G                Galois Fiels size minus 1       ex: 25"                         << endl; \
+                cout << " -s                start ebn0 of simulation        ex: 2.5"                        << endl; \
+                cout << " -S                step ebn0 of simulation         ex: 0.2"                        << endl; \
+                cout << " -E                end  ebn0 of simulation         ex: 3.0"                        << endl; \
+                cout << " [-d]              decoding selection              default or 0->msa 1->spa"       << endl; \
+                cout << " [-i]              iteration of decoding           ex: 50"                         << endl; \
+                cout << " [-a]              attenuation of msa 	           ex: 625 (due to a bug in command line input, only integer input is OK)"                      << endl; \
+                cout << " [-f]              read configuration from file    ex: config !!!!!!!! NOT USE"    << endl; \
+                cout << " [-e]              select encoding		           ex:"                            << endl; \
+                cout << " [-x]              generation matrix file          ex: ./matrix/G.csv"             << endl; \
+                cout << " -h                get help information"                                           << endl; \
 
 static inline void parse_arg(int argc, char *argv[]) {
     const struct option table[] = {
@@ -212,6 +236,7 @@ void test_decoder()
         double esn0 = ac.get_code_ratio() * pow(10, ebn0 / 10.0);
         unsigned long long tot_blk = 0;
         int err_blk = 0;
+        int err_bits = 0;
         while (err_blk < 10)
         {
             initial_code(basecode);
@@ -230,12 +255,15 @@ void test_decoder()
             }
 
             // run decoder
-            err_blk += decoder.run_decoder(ac, re_seqs, ebn0);
             tot_blk++;
+            if (decoder.run_decoder(ac, re_seqs, ebn0)) {
+                err_blk++;
+                err_bits += get_err_bits(encoder.coded_o, decoder.out_seqs);
+            }
             if (tot_blk % MAX_BLK == 0)
-                log_de(ebn0, tot_blk, err_blk, "[ROUTINE]");
+                log_de(ebn0, tot_blk, err_blk, err_bits, "[ROUTINE]");
         }
-        log_de(ebn0, tot_blk, err_blk, "[OK]");
+        log_de_ratio(ebn0, tot_blk, err_blk, err_bits, ccf.len, "[OK]");
     }
     fprintf(stdout, "[END]----------------\n\n");
 }
@@ -243,7 +271,7 @@ void test_decoder()
 int main(int argc, char *argv[])
 {
     srand(0); // set random seed
-              //  test_decoder();
+    //  test_decoder();
     parse_arg(argc, argv);
     test_decoder();
     return 0;
