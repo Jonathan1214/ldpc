@@ -1,0 +1,8 @@
+include makefile.257_6x24
+
+include makefile.257_6x16
+
+include makefile.257_6x12
+
+include makefile.257_6x20
+
