@@ -51,4 +51,13 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+# running log file
+
 *.log
+
+# data file
+
+*.csv
+
+# matlab tmp file
+*.asv

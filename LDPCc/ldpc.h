@@ -45,7 +45,7 @@ struct code_configure {
     string cnsfile;             // check node connection file
     string genfile;             // generation file
     char corr = 1;              // correction of connection file
-    char delim = ',';           // delim of connection file
+    const char delim = ',';           // delim of connection file
 };
 
 class LDPC {
