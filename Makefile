@@ -50,6 +50,7 @@ cleanall: clean
 	rm -f $(TARGET)
 	@echo clean target
 
+# assign simulation output file
 enc :=
 out ?=
 outfile :=
@@ -57,7 +58,8 @@ ifneq ($(out),)
 outfile := >> $(out).log
 endif
 
-run4x8:
+# run 4x8 base matrix size code
+run:
 	@$(TARGET) \
 		--len 2048 \
 		-r 1024 \
@@ -76,24 +78,22 @@ run4x8:
 		-E 2.5 \
 		$(outfile)
 
-run6x24:
-	@$(TARGET) \
-		--len 6144 \
-		-r 1536 \
-		-b 4613 \
-		-d0 \
-		-i40 \
-		-a625 \
-		-C 24 \
-		-V 6 \
-		-G 256 \
-		-x$(CUR_DIR)/matrix/G_mat.csv \
-		-c$(CUR_DIR)/matrix/CNsCon6x24.csv \
-		-v$(CUR_DIR)/matrix/VNsCon6x24.csv \
-		-s 3.0 \
-		-S 0.2 \
-		-E 4.2 \
-		$(outfile)
-
 help:
 	@$(TARGET) --help
+
+
+# include other code
+CODE_DIR     = $(CUR_DIR)/code-conf
+CODEMKFILE   = $(CODE_DIR)/makefile.
+
+# 6x8 code
+include $(CODEMKFILE)257_6x8
+include $(CODEMKFILE)257_6x12
+include $(CODEMKFILE)257_6x16
+include $(CODEMKFILE)257_6x20
+include $(CODEMKFILE)257_6x24
+
+# 4x20
+# include $(MKFILE)257_4x20
+
+

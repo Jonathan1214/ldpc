@@ -1,0 +1,3 @@
+[submodule "ldpc-constructor-lib"]
+	path = ldpc-constructor-lib
+	url = git@github.com:Jonathan1214/ldpc-constructor-lib.git

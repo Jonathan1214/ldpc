@@ -1,15 +1,18 @@
-set args -l 6144 \
+set args \
+		-l 5120 \
 		-r 1536 \
-		-b 4613 \
-		-d0 \
-		-i40 \
+		-b 3589 \
+		-d0  \
+		-i50 \
 		-a625 \
-		-C 24 \
+		-C 20 \
 		-V 6 \
 		-G 256 \
-		-c./matrix/CNsCon6x24.csv \
-		-v./matrix/VNsCon6x24.csv \
-		-s 3.0 \
+		-x./matrix/.csv \
+		-c./matrix/CNsCon257_6x20.csv \
+		-v./matrix/VNsCon257_6x20.csv \
+		-s 1.9 \
 		-S 0.2 \
-		-E 4.2 \
+		-E 2.5
+
 b main
