@@ -81,12 +81,11 @@ run:
 help:
 	@$(TARGET) --help
 
-
 # include other code
 CODE_DIR     = $(CUR_DIR)/code-conf
 CODEMKFILE   = $(CODE_DIR)/makefile.
 
-# 6x8 code
+# 6xX code
 include $(CODEMKFILE)257_6x8
 include $(CODEMKFILE)257_6x12
 include $(CODEMKFILE)257_6x16

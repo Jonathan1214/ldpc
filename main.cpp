@@ -46,7 +46,7 @@ const int MAX_BLK = 1e6;
 #define log_de(ebn0, tot_blk, err_blk, err_bits, type) do { \
         curtime = time(0); \
         logtime = localtime(&curtime); \
-        fprintf(stdout, type" %02d-%02d-%02d %02d:%02d:%02d, %6.2f, %10llu, %4d, %5d\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
+        fprintf(stdout, type" [%02d-%02d-%02d %02d:%02d:%02d]  %6.2f  %10llu  %4d  %5d\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
                                 logtime->tm_hour, logtime->tm_min, logtime->tm_sec, \
                                 ebn0, tot_blk, err_blk, err_bits); \
         fflush(stdout); \
@@ -55,7 +55,7 @@ const int MAX_BLK = 1e6;
 #define log_de_ratio(ebn0, tot_blk, err_blk, err_bits, frame_len, type) do { \
         curtime = time(0); \
         logtime = localtime(&curtime); \
-        fprintf(stdout, type" %02d-%02d-%02d %02d:%02d:%02d, %6.2f, %10llu, %4d, %5d, %.10f, %.10f\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
+        fprintf(stdout, type" [%02d-%02d-%02d %02d:%02d:%02d]  %6.2f  %10llu  %4d  %5d  %.10f  %.10f\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
                                 logtime->tm_hour, logtime->tm_min, logtime->tm_sec, \
                                 ebn0, tot_blk, err_blk, err_bits, (double)err_blk/tot_blk, (double)err_bits/tot_blk/frame_len); \
         fflush(stdout); \
@@ -271,7 +271,9 @@ void test_decoder()
 int main(int argc, char *argv[])
 {
     srand(0); // set random seed
+    // srand((unsigned)time(NULL));
     //  test_decoder();
+    fprintf(stdout, "\n\n");
     parse_arg(argc, argv);
     test_decoder();
     return 0;
