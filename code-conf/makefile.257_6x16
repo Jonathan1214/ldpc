@@ -1,0 +1,18 @@
+run6x16:
+	@$(TARGET) \
+		-l 4096 \
+		-r 1536 \
+		-b 2565 \
+		-d0  \
+		-i50 \
+		-a625 \
+		-C 16 \
+		-V 6 \
+		-G 256 \
+		-x$(CUR_DIR)/matrix/f.csv \
+		-c$(CUR_DIR)/matrix/CNsCon257_6x16.csv \
+		-v$(CUR_DIR)/matrix/VNsCon257_6x16.csv \
+		-s 2.5 \
+		-S 0.2 \
+		-E 3.5 \
+		$(outfile)
