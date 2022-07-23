@@ -57,6 +57,7 @@ _deps
 
 # data file
 
+*.csv
 
 # matlab tmp file
 *.asv
