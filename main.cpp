@@ -261,7 +261,7 @@ void test_decoder()
                 err_bits += get_err_bits(encoder.coded_o, decoder.out_seqs);
             }
             if (tot_blk % MAX_BLK == 0)
-                log_de(ebn0, tot_blk, err_blk, err_bits, "[ROUTINE]");
+                log_de_ratio(ebn0, tot_blk, err_blk, err_bits, ccf.len, "[ROUTINE]");
         }
         log_de_ratio(ebn0, tot_blk, err_blk, err_bits, ccf.len, "[OK]");
     }
