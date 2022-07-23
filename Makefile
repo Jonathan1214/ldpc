@@ -64,6 +64,7 @@ parse:
 
 # cat $(outfile) | grep 'OK' | sed -n '/2022-07-22 16:42:51/,/*/p' | awk '{print $4, $8, $9}'
 # run 4x8 base matrix size code
+attenu =625
 run:
 	@$(TARGET) \
 		--len 2048 \
@@ -71,7 +72,7 @@ run:
 		-b 1027 \
 		-d0 \
 		-i40 \
-		-a625 \
+		-a$(attenu) \
 		-C 8 \
 		-V 4 \
 		-G 256 \
