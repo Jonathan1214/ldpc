@@ -55,9 +55,14 @@ enc :=
 out ?=
 outfile :=
 ifneq ($(out),)
-outfile := >> $(out).log
+outfile := >> out$(out).log
 endif
 
+# data process
+parse:
+	@cat out$(out).log | grep 'OK' | tail -n 6 | awk '{print $$4, $$8, $$9}'
+
+# cat $(outfile) | grep 'OK' | sed -n '/2022-07-22 16:42:51/,/*/p' | awk '{print $4, $8, $9}'
 # run 4x8 base matrix size code
 run:
 	@$(TARGET) \
