@@ -83,7 +83,7 @@ fprintf(mkconf, ['\t\t-r ' num2str(rowH)     ' \\\n']);
 fprintf(mkconf, ['\t\t-b ' num2str(info_len) ' \\\n']);
 fprintf(mkconf, ['\t\t-d0 '                  ' \\\n']);
 fprintf(mkconf, ['\t\t-i50'                  ' \\\n']);
-fprintf(mkconf, ['\t\t-a625'                 ' \\\n']);
+fprintf(mkconf, ['\t\t-a$(attenu)'            ' \\\n']);
 fprintf(mkconf, ['\t\t-C ' num2str(r)        ' \\\n']);
 fprintf(mkconf, ['\t\t-V ' num2str(g)        ' \\\n']);
 fprintf(mkconf, ['\t\t-G ' num2str(q-1)      ' \\\n']);
