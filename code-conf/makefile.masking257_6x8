@@ -1,4 +1,4 @@
-run6x8:
+runm6x8:
 	@$(TARGET) \
 		-l 2048 \
 		-r 1536 \
