@@ -1,0 +1,18 @@
+run6x20:
+	@$(TARGET) \
+		-l 5120 \
+		-r 1536 \
+		-b 3584 \
+		-d0  \
+		-i50 \
+		-a$(attenu) \
+		-C 20 \
+		-V 6 \
+		-G 256 \
+		-x$(CUR_DIR)/matrix/f.csv \
+		-c$(CUR_DIR)/matrix/CNsConMasking257_6x20.csv \
+		-v$(CUR_DIR)/matrix/VNsConMasking257_6x20.csv \
+		-s 2.5 \
+		-S 0.2 \
+		-E 3.5 \
+		$(outfile)
