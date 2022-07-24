@@ -12,7 +12,7 @@ runm6x12:
 		-x$(CUR_DIR)/matrix/f.csv \
 		-c$(CUR_DIR)/matrix/CNsConMasking257_6x12.csv \
 		-v$(CUR_DIR)/matrix/VNsConMasking257_6x12.csv \
-		-s 2.5 \
+		-s 1.9 \
 		-S 0.2 \
 		-E 3.5 \
 		$(outfile)

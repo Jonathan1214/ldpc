@@ -93,7 +93,6 @@ CODEMKFILE    = $(CODE_DIR)/makefile.
 CODEMKFILEMASK = $(CODE_DIR)/makefile.masking
 
 # 6xX code
-include $(CODEMKFILE)257_6x8
 include $(CODEMKFILE)257_6x12
 include $(CODEMKFILE)257_6x16
 include $(CODEMKFILE)257_6x20

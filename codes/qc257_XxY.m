@@ -100,7 +100,11 @@ if sel_mask == 1
 end
 mkfilename = [mkfilebase num2str(q) '_' bmsize];
 mkconf = fopen([mkconf_path, mkfilename], 'w');
-fprintf(mkconf, ['run' bmsize ':\n']);
+run = 'run';
+if sel_mask == 1
+    run = [run 'm'];
+end
+fprintf(mkconf, [run bmsize ':\n']);
 fprintf(mkconf, '\t@$(TARGET) \\\n');
 fprintf(mkconf, ['\t\t-l ' num2str(code_len) ' \\\n']);
 fprintf(mkconf, ['\t\t-r ' num2str(rowH)     ' \\\n']);

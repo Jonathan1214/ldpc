@@ -56,16 +56,16 @@ maincont = """
 """
 
 # read svg data
-with open("../outsvg.svg", 'r') as f:
-    svgpic = f.read()
+# with open("../outsvg.svg", 'r') as f:
+#     svgpic = f.read()
 
-# read raw data
-with open("../outdata.dat", 'r') as f:
-    data = "<br>".join(f.readlines())
+# # read raw data
+# with open("../outdata.dat", 'r') as f:
+#     data = "<br>".join(f.readlines())
 
-# combine html
-mail_content = maincont.format(date=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), data=data, svg=svgpic)
-
+# # combine html
+# mail_content = maincont.format(date=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), data=data, svg=svgpic)
+mail_content = maincont
 
 #登录并发送邮件
 def send_mail(mail_content):

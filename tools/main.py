@@ -1,4 +1,6 @@
+from cgi import test
 import os
+from shutil import which
 import time
 import smtplib
 
@@ -17,6 +19,8 @@ current simulation status:
 {cur_log}
 """
 
+checked = set([])
+
 def parse_ps(user):
     """
     处理命令
@@ -32,7 +36,7 @@ def parse_ps(user):
         yield a_code
 
 
-def parse_out_log(target):
+def parse_out_log(out, target):
     """处理日志
 
     Args:
@@ -41,45 +45,67 @@ def parse_out_log(target):
     Returns:
         str: 日志文件输
     """
-    base_out_file = "../out{axb}.log"
-    cur_out_file = base_out_file.format(axb=target)
-    cat_out = os.popen(cmd_out.format(out=cur_out_file)).read()
+    base_out_file = "../{out}{target}.log"
+    cur_out_file = base_out_file.format(out=out, target=target)
+    cat_out = ""
+    if (os.path.exists(cur_out_file)):
+        cat_out = os.popen(cmd_out.format(out=cur_out_file)).read()
     # print(cat_out)
     return cat_out
 
-def parse_all():
+def parse_all(out):
     """处理所有的日志
 
     Returns:
         str: 提取的日志信息
     """
+    global checked
     outmain = ""
     parsed_data = {}
     for cc in parse_ps("kolinahr"):
         # assert(lst_str.__len__() == 5)
         lst_str = cc.split()
-        parsed_data['target'] = "x".join(lst_str[0:2])
+        target = "x".join(lst_str[0:2])
+        dup_t = target
+        # 避免重复添加
+        to_check = ""
+        if out[-1] == 'm':
+            target = target + ' masking'
+            to_check = 'm' + dup_t
+        else:
+            to_check = dup_t
+        if to_check in checked:
+            continue
+        checked.add(to_check)
+        parsed_data['target'] = target
         parsed_data['timeused'] = lst_str[2]
         parsed_data['sim_cond'] = " ".join(lst_str[3:5])
-        parsed_data['cur_log'] = parse_out_log(parsed_data['target'])
+        parsed_data['cur_log'] = parse_out_log(out=out, target=dup_t)
         outmain = outmain + template_log.format(**parsed_data)
     return outmain
 
 def test_parse():
     """测试文件处理
     """
-    data = parse_all()
+    global checked
+    checked = set([])
+    data = parse_all("out") + parse_all("outm")
     date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     mail_content = maincont.format(date=date, data=data.replace("\n", "<br>"))
-    print(mail_content)
+    with open("mailcontent.html", 'w') as f:
+        f.write(mail_content)
+    # print(mail_content)
 
 def main():
     """主函数
     """
+    global checked
     while True:
         t = time.localtime()
-        if (t.tm_hour == 17 and t.tm_min == 7):
-            data = parse_all()
+        # 0 4 8 12 16 20
+        if t.tm_hour % 4 == 0:
+            checked = set([])
+            data = parse_all("out") + parse_all("outm")
             date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             mail_content = maincont.format(date=date, data=data.replace("\n", "<br>"))
             send_mail(mail_content)
@@ -89,5 +115,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    test_parse()
+    test_parse()
 
