@@ -27,6 +27,18 @@ if size(r) == 0
     disp('use default COLUMN of base matrix, which equals 20\n');
     r = 20;
 end
+
+% mask matrix
+z_mask = ones(g, r);
+sel_mask = input('add Mask? : ');
+if size(sel_mask, 1) > 0 && sel_mask == 1
+    disp('Masking H matrix');
+    sel_mask = 1;
+    z_mask = mask_mat(r, g);
+else
+    disp('No Masking in H matrix');
+    sel_mask = 0;
+end
 % start row of base matrix
 row_start = q-g;
 % start col of base matrix
@@ -40,12 +52,14 @@ rowH = g * (q - 1);
 [tablePowerOfIndex, tableIndexOfPower, W1] = genBaseMatOfQCLDPC(root, q);
 
 H_disp = W1(row_start:row_start+g-1, col_start:col_start+r-1);
+H_disp = H_disp .* z_mask;
 
 % convert H_disp to a real parity-check matrix H, using two matrix 
 [CNs_connection, VNs_connection] = genConnMat(q, H_disp, tablePowerOfIndex);
 
 % test rank of matrix to decide encode ratio of LDPC code
 disp('H matrix steup done.');
+% get rank of H matrix, for info bits of code
 r_II_ex1 = myrank(CNs_connection, q-1, 0);
 info_len = code_len - r_II_ex1;
 fprintf('code size (code_len, info_len): (%d, %d)\n', code_len, info_len);
@@ -58,6 +72,11 @@ file_path     = '..';
 sub_fold      = '/matrix/';
 vnfile_prefix = 'VNsCon'    ;
 cnfile_prefix = 'CNsCon'    ;
+% with masking
+if sel_mask == 1
+    vnfile_prefix = [vnfile_prefix 'Masking'];
+    cnfile_prefix = [cnfile_prefix 'Masking'];
+end
 file_suffix   = '.csv'      ;
 delim         = ','         ;
 bmsize        = [num2str(g) 'x' num2str(r)];
@@ -74,7 +93,12 @@ G_file_sub = [sub_fold 'f' file_suffix];
 
 % makefile configuration
 mkconf_path = [file_path '/code-conf/'];
-mkfilename = ['makefile.' num2str(q) '_' bmsize];
+mkfilebase  = 'makefile.';
+% with masking
+if sel_mask == 1
+    mkfilebase = [mkfilebase 'masking'];
+end
+mkfilename = [mkfilebase num2str(q) '_' bmsize];
 mkconf = fopen([mkconf_path, mkfilename], 'w');
 fprintf(mkconf, ['run' bmsize ':\n']);
 fprintf(mkconf, '\t@$(TARGET) \\\n');
@@ -100,5 +124,10 @@ codemkfilename = [mkconf_path 'makefile.codes'];
 codemkfile = fopen(codemkfilename, 'a+');
 fprintf(codemkfile, ['include ' mkfilename '\n\n']);
 fclose(codemkfile);
+
+main_makefile = [file_path '/Makefile'];
+mmf = fopen(main_makefile, 'a+');
+fprintf(mmf, ['include $(CODEMKFILEMASK)' num2str(q) '_' bmsize '\n']);
+fclose(mmf);
 
 disp('ALL JOB DONE GOOD');
