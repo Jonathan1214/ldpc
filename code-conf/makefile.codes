@@ -6,3 +6,7 @@ include makefile.257_6x12
 
 include makefile.257_6x20
 
+include makefile.257_6x8
+
+include makefile.257_4x20
+
