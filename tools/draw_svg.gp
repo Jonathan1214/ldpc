@@ -1,4 +1,5 @@
-set terminal svg size 500 400
+# term   --> terminal
+set term svg size 500 400
 set output 'outsvg.svg'
 
 # set logscale
@@ -13,7 +14,7 @@ set grid
 
 # plot
 # when draw mulit line in a axes, using ''after first line
-# using -> u
-# lp    -> linepoints
+# u   ->  using
+# lp  ->  linepoints
 plot "outdata.dat" u 1:2 title "6x20 BLER" with lp,''u 1:3 title "6x20 BER" with lp,\
 "out.dat" u 1:2 title "6x16 BLER" with lp,''u 1:3 title "6x16 BER" with lp
