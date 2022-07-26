@@ -61,3 +61,12 @@ _deps
 
 # matlab tmp file
 *.asv
+
+
+*.pyc
+
+*.dat
+
+*.html
+
+*.svg
