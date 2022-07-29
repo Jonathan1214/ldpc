@@ -6,14 +6,17 @@ BIN_DIR = ./bin
 DEC_DIR = $(CUR_DIR)/decoder
 ENC_DIR = $(CUR_DIR)/encoder
 LCC_DIR = $(CUR_DIR)/LDPCc
+CHA_DIR = $(CUR_DIR)/channel
 
 INC_DIR	= -I$(LCC_DIR) \
 			-I$(DEC_DIR) \
-			-I$(ENC_DIR)
+			-I$(ENC_DIR) \
+			-I$(CHA_DIR)
 
 SRC = 	$(wildcard $(LCC_DIR)/*$(SUFFIX)) \
 		$(wildcard $(DEC_DIR)/*$(SUFFIX)) \
 		$(wildcard $(ENC_DIR)/*$(SUFFIX)) \
+		$(wildcard $(CHA_DIR)/*$(SUFFIX)) \
 		main.cpp
 
 OBJ = $(patsubst %$(SUFFIX),%.o, $(SRC))

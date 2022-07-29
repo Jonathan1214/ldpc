@@ -5,6 +5,7 @@
 #include "encoder.h"
 #include "decoder.h"
 #include "ldpc.h"
+#include "channel.h"
 using namespace std;
 
 #define rand_ra() (int)((30000. * rand()) / ((double)RAND_MAX))
@@ -216,6 +217,8 @@ void test_decoder()
     // construct a decoder and encoder
     Decoder decoder(ccf);
     Encoder encoder(ccf.len);
+    // initial Channel
+    Channel ch;
 
     cout << "acode" << endl;
     // ac.initial(2048, 1027, 4, 8, 256, cnf, vnf, ',');
@@ -251,7 +254,7 @@ void test_decoder()
             for (int i = 0; i < re_seqs.size(); ++i)
             {
                 AWGN();
-                re_seqs[i] = re_seqs[i] + 1.0 / sqrt(2.0 * esn0) * noise;
+                re_seqs[i] = re_seqs[i] + 1.0 / sqrt(2.0 * esn0) * ch.awgn(); // noise;
             }
 
             // run decoder
