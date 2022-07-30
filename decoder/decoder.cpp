@@ -236,3 +236,17 @@ Decoder::run_use_spa(const LDPC &cc, const rece_seq &sq, double ebn0) {
 
     return 0;
 }
+
+/**@brief count error bits inside frame
+ * @param[in] iseq encoder output sequence
+ * @param[in] oseq decoder output sequence
+ *
+*/
+int get_err_bits(const info_fram_t& iseq, const  info_fram_t& oseq) {
+    assert(iseq.size() == oseq.size());
+    int err = 0;
+    for (int i = 0; i < iseq.size(); ++i)
+        if (iseq[i] ^ oseq[i])
+            err++;
+    return err;
+}

@@ -6,38 +6,8 @@
 #include "decoder.h"
 #include "ldpc.h"
 #include "channel.h"
+
 using namespace std;
-
-#define rand_ra() (int)((30000. * rand()) / ((double)RAND_MAX))
-#define PI 3.1415926
-llr_width noise;
-void AWGN(void)
-{
-    double random1, random2, random3, random4;
-    double G, B;
-
-    random1 = rand_ra() % 10000;
-    random2 = rand_ra() % 10000;
-    random3 = rand_ra() % 10000;
-    random4 = rand_ra() % 10000;
-    G = sqrt(-2 * log((random1 / 10000) + (random2 / 10000 / 10000) + 0.000000001));
-    B = (random3 / 10000) + (random4 / 10000 / 10000);
-    noise = G * cos(2 * PI * B);
-}
-
-/**@brief count error bits inside frame
- * @param[in] iseq encoder output sequence
- * @param[in] oseq decoder output sequence
- *
-*/
-inline int get_err_bits(info_fram_t& iseq, info_fram_t& oseq) {
-    assert(iseq.size() == oseq.size());
-    int err = 0;
-    for (int i = 0; i < iseq.size(); ++i)
-        if (iseq[i] ^ oseq[i])
-            err++;
-    return err;
-}
 
 time_t curtime;
 tm* logtime;
@@ -253,7 +223,7 @@ void test_decoder()
             // pass channel
             for (int i = 0; i < re_seqs.size(); ++i)
             {
-                AWGN();
+                // AWGN();
                 re_seqs[i] = re_seqs[i] + 1.0 / sqrt(2.0 * esn0) * ch.awgn(); // noise;
             }
 

@@ -2,6 +2,11 @@
 #define _CHANNEL_H
 #include <iostream>
 #include <random>
+#include "ldpc.h"
+
+extern llr_width noise;
+#define rand_ra() (int)((30000. * rand()) / ((double)RAND_MAX))
+#define PI 3.1415926
 
 using std::normal_distribution;
 using std::mt19937;
@@ -18,5 +23,7 @@ private:
     normal_distribution<> nd;
 };
 
+
+void AWGN(void);
 
 #endif

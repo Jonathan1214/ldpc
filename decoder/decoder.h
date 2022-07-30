@@ -62,5 +62,6 @@ private:
     unsigned long long checkfailed = 0;
 };
 
+inline int get_err_bits(const info_fram_t& iseq, const info_fram_t& oseq);
 
 #endif
