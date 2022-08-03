@@ -76,5 +76,5 @@ ldpc-constructor-lib/
 *.swp
 *gp
 *.txt
-
+*.code-workspace
 
