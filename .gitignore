@@ -70,3 +70,11 @@ _deps
 *.html
 
 *.svg
+
+ldpc-constructor-lib/
+
+*.swp
+*gp
+*.txt
+
+
