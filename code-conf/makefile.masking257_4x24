@@ -1,0 +1,18 @@
+runm4x24:
+	@$(TARGET) \
+		-l 6144 \
+		-r 1024 \
+		-b 5120 \
+		-d0  \
+		-i50 \
+		-a$(attenu) \
+		-C 24 \
+		-V 4 \
+		-G 256 \
+		-x$(CUR_DIR)/matrix/f.csv \
+		-c$(CUR_DIR)/matrix/CNsConMasking257_4x24.csv \
+		-v$(CUR_DIR)/matrix/VNsConMasking257_4x24.csv \
+		-s 2.5 \
+		-S 0.2 \
+		-E 3.5 \
+		$(outfile)

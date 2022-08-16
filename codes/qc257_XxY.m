@@ -124,14 +124,12 @@ fprintf(mkconf, ['\t\t-E 3.5'                  ' \\\n']);
 fprintf(mkconf, '\t\t$(outfile)\n');
 fclose(mkconf);
 
+include_path = 'CODEMKFILE';
+if sel_mask == 1
+    include_path = 'CODEMKFILEMASK';
+end
+
 codemkfilename = [mkconf_path 'makefile.codes'];
 codemkfile = fopen(codemkfilename, 'a+');
-fprintf(codemkfile, ['include ' mkfilename '\n\n']);
+fprintf(codemkfile, ['include $(' include_path ')' num2str(q) '_' bmsize '\n']);
 fclose(codemkfile);
-
-main_makefile = [file_path '/Makefile'];
-mmf = fopen(main_makefile, 'a+');
-fprintf(mmf, ['include $(CODEMKFILEMASK)' num2str(q) '_' bmsize '\n']);
-fclose(mmf);
-
-disp('ALL JOB DONE GOOD');

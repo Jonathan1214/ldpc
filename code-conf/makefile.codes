@@ -1,12 +1,13 @@
-include makefile.257_6x24
+include $(CODEMKFILE)257_6x12
+include $(CODEMKFILE)257_6x16
+include $(CODEMKFILE)257_6x20
+include $(CODEMKFILE)257_6x24
+include $(CODEMKFILEMASK)257_6x24
+include $(CODEMKFILEMASK)257_6x20
+include $(CODEMKFILEMASK)257_6x16
+include $(CODEMKFILEMASK)257_6x12
+include $(CODEMKFILEMASK)257_6x8
 
-include makefile.257_6x16
-
-include makefile.257_6x12
-
-include makefile.257_6x20
-
-include makefile.257_6x8
-
-include makefile.257_4x20
-
+include $(CODEMKFILE)257_4x24
+include $(CODEMKFILEMASK)257_4x24
+include $(CODEMKFILE)257_4x12

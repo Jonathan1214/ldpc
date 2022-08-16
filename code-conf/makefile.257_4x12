@@ -1,0 +1,18 @@
+run4x12:
+	@$(TARGET) \
+		-l 3072 \
+		-r 1024 \
+		-b 2051 \
+		-d0  \
+		-i50 \
+		-a$(attenu) \
+		-C 12 \
+		-V 4 \
+		-G 256 \
+		-x$(CUR_DIR)/matrix/f.csv \
+		-c$(CUR_DIR)/matrix/CNsCon257_4x12.csv \
+		-v$(CUR_DIR)/matrix/VNsCon257_4x12.csv \
+		-s 2.5 \
+		-S 0.2 \
+		-E 3.5 \
+		$(outfile)

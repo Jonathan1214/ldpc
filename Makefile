@@ -95,18 +95,4 @@ CODE_DIR      = $(CUR_DIR)/code-conf
 CODEMKFILE    = $(CODE_DIR)/makefile.
 CODEMKFILEMASK = $(CODE_DIR)/makefile.masking
 
-# 6xX code
-include $(CODEMKFILE)257_6x12
-include $(CODEMKFILE)257_6x16
-include $(CODEMKFILE)257_6x20
-include $(CODEMKFILE)257_6x24
-
-# 4x20
-# include $(MKFILE)257_4x20
-
-
-include $(CODEMKFILEMASK)257_6x24
-include $(CODEMKFILEMASK)257_6x20
-include $(CODEMKFILEMASK)257_6x16
-include $(CODEMKFILEMASK)257_6x12
-include $(CODEMKFILEMASK)257_6x8
+include $(CODE_DIR)/makefile.codes
