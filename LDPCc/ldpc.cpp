@@ -69,15 +69,13 @@ void LDPC::read_conn(MatrixConn& to_mat, const string& file, char delim,
   int line = 0;
   while (line < x && getline(fp, s)) {
     // 分隔符可能是 ',' 或者 ' '
-    int ix = 0;
-    int st = ix;
+    istringstream read_str(s);
+    string cur;
     for (int i = 0; i < y; ++i) {
-      st = ix;
-      while (ix < s.size() && s[ix] != delim) ix++;
-      to_mat[line][i] = stoi(s.substr(st, ix - st));
-      assert(to_mat[line][i] + 1 >= corr);
+      getline(read_str, cur, delim);
+      int val = stoi(cur);
+      to_mat[line][i] = val;
       to_mat[line][i] -= corr;
-      ix++;
     }
     line++;
   }
@@ -92,14 +90,13 @@ void LDPC::set_genMat(const string& file, char delim) {
   string s;
   int line = 0;
   while (line < len_ && getline(fp, s)) {
-    int ix = 0;
-    int st = 0;
+    istringstream read_str(s);
+    string cur;
     for (int i = 0; i < bits_; ++i) {
-      st = ix;
-      while (ix < s.size() && s[ix] != delim) ix++;
-      genMat_[line][i] = stoi(s.substr(st, ix - st));
-      assert(genMat_[line][i] == 0 || genMat_[line][i] == 1);
-      ix++;
+      getline(read_str, cur, delim);
+      int val = stoi(cur);
+      assert(val == 0 || val == 1);
+      genMat_[line][i] = val;
     }
     line++;
   }

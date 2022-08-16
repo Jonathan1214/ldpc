@@ -2,6 +2,7 @@
 #define _LDPC_h_
 #include <cassert>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@ using std::stoi;
 using std::string;
 using std::to_string;
 using std::vector;
+using std::istringstream;
 
 using PosType = int16_t;
 using SymbolWidthType = float;
