@@ -21,7 +21,17 @@ H_disp = W1(row_start:row_start+g-1, col_start:col_start+r-1);
 [CNs_connection, VNs_connection] = genConnMat(q, H_disp, tablePowerOfIndex);
 
 % test rank of matrix to decide encode ratio of LDPC code
-[r_II_ex1, HH] = myrank(CNs_connection, q-1, 0);
+% [r_II_ex1, HH] = myrank(CNs_connection, q-1, 0);
+r_II_ex1 = 1021;
+[row, col] = size(CNs_connection);
+HH_full = zeros(row, col*(q-1));
+for i = 1:row
+    for j = 1:col
+        if ( CNs_connection(i, j) ~= 0 )
+            HH_full(i, CNs_connection(i, j)) = 1;
+        end
+    end
+end
 
 %% 
 
@@ -40,17 +50,19 @@ Dd = H_disp(:, k:k+l-1);
 % HH(:, (r-l)*q_m1+1:r*q_m1) = HH(:, (k-1)*q_m1+1:(k+l-1)*q_m1);
 % HH(:, (k-1)*q_m1+1:k*q_m1) = lst;
 
-HH = HH(:, (k+l-1)*q_m1+1:end);
+HH = HH_full(:, (k+l-1)*q_m1+1:end);
 
-col_sel = [1:256 258:512 514:768 770:1024];
-elimi_col = [257 513 769];
-newCH = D(:, col_sel);
+
+[~, pivc] = myrref(D);
+elimi_col = 1:1024;
+elimi_col(pivc) = [];
+newCH = D(:, pivc);
 
 nr = gfrank(newCH);
 %% for G part
 % G 部分的计算和 H 满秩时的计算方法相同
 DD = D;
-DD(:, elimi_col) = zeros(length(g*q_m1));
+DD(:, elimi_col) = 0;
 G_g = zeros(r-l, l*q_m1);
 u = zeros(q_m1, 1);
 u(1) = 1;
@@ -62,13 +74,11 @@ for i = 1:r-l
 end
 
 [Rr, pivv] = myrref([DD z_i]);
-gi = zeros(1, l*q_m1);
 
 for i = 1:r-l
     col = i + lb;
-    for j = 1:length(pivv)
-        gi(pivv(j)) = Rr(j, col);
-    end
+    gi = zeros(1, l*q_m1);
+    gi(pivv) = Rr(1:length(pivv), col);
     check(i) = sum(z_i(:, i) ~= mod(D * gi', 2));
     G_g(i, :) = gi;
 end
@@ -84,32 +94,9 @@ fclose(fid);
 
 %% for Q part
 % 这一段是固定写法，换成别的 H 非满秩的 LDPC 码也可以如此计算
-[R, piv] = myrref(D);
+[w, R, pivc] = null_gf2(D);
+w = w';
 
-indep_col = [];
-for i = 2:rk
-    % 找到不存在的列
-    if piv(i) ~= piv(i-1) + 1
-        indep_col = [indep_col piv(i)-1];
-    end
-end
-
-if length(indep_col) < lb - rk
-    indep_col = [indep_col length(D)];
-end
-
-w = zeros(length(indep_col), lb);
-for i = 1:length(indep_col)
-    idx = indep_col(i);
-    wi = zeros(1, l*q_m1);
-    for j = 1:length(piv)
-        wi(piv(j)) = R(j, idx);
-    end
-    wi(idx) = 1;
-    w(i, :) = wi;
-end
-
-r = 12;
 Q = [w zeros(lb - rk, (r-l)*q_m1)];
 
 %% full generate matrix
