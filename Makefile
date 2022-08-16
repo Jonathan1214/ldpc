@@ -79,12 +79,13 @@ run:
 		-C 8 \
 		-V 4 \
 		-G 256 \
+		-e \
 		-x$(CUR_DIR)/matrix/G_mat.csv \
 		-c$(CUR_DIR)/matrix/CNsCon.csv \
 		-v$(CUR_DIR)/matrix/VNsCon.csv \
 		-s 1.9 \
 		-S 0.2 \
-		-E 2.5 \
+		-E 2.3 \
 		$(outfile)
 
 help:

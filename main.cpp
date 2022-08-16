@@ -220,9 +220,9 @@ static inline void parse_arg(int argc, char *argv[]) {
         CONFIGURE_F(ccf, eebn0);
         break;
       case 'e':
-        printf("encoding selection is %s\n", optarg);
         // select encoding
         ccf.encoding = 1;
+        printf("encoding selection is %d\n", ccf.encoding);
         break;
       case 'h':
         HELP();
