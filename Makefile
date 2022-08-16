@@ -3,10 +3,18 @@ LD = g++
 SUFFIX = .cpp
 CUR_DIR = .
 BIN_DIR = ./bin
+TARGET  := $(BIN_DIR)/ldpc
 DEC_DIR = $(CUR_DIR)/decoder
 ENC_DIR = $(CUR_DIR)/encoder
 LCC_DIR = $(CUR_DIR)/LDPCc
 CHA_DIR = $(CUR_DIR)/channel
+
+MAIN := main.cpp
+mu ?= n
+ifeq ($(mu),y)
+MAIN := multi_ratio_ldpc.cpp
+TARGET := $(BIN_DIR)/muti_ratio
+endif
 
 INC_DIR	= -I$(LCC_DIR) \
 			-I$(DEC_DIR) \
@@ -17,7 +25,7 @@ SRC = 	$(wildcard $(LCC_DIR)/*$(SUFFIX)) \
 		$(wildcard $(DEC_DIR)/*$(SUFFIX)) \
 		$(wildcard $(ENC_DIR)/*$(SUFFIX)) \
 		$(wildcard $(CHA_DIR)/*$(SUFFIX)) \
-		main.cpp
+		$(MAIN)
 
 OBJ = $(patsubst %$(SUFFIX),%.o, $(SRC))
 
@@ -30,7 +38,6 @@ DEBUG := -g
 endif
 
 CLFAGS = $(DEBUG) $(INC_DIR)
-TARGET = $(BIN_DIR)/ldpc
 
 $(TARGET): $(OBJ)
 	$(CC) $(OBJ) -o $@ --verbose -Wall
@@ -90,6 +97,10 @@ run:
 
 help:
 	@$(TARGET) --help
+
+mura: $(TARGET)
+	@$(TARGET)
+
 
 # include other code
 CODE_DIR      = $(CUR_DIR)/code-conf
