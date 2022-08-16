@@ -10,16 +10,16 @@
 #define _ENCODER_H_
 #include <iostream>
 #include <vector>
-#include "../LDPCc/ldpc.h"
+#include "ldpc.h"
 
 class Encoder {
 public:
     Encoder() = default;
-    Encoder(size_t size) { assert(size > 0); coded_o.resize(size); }
-    inline Encoder& set_out_size(size_t size) { coded_o.resize(size); return *this; }
-    void run_encoder(const LDPC& cc, const info_fram_t& info);
+    Encoder(size_t size) { assert(size > 0); coded_output.resize(size); }
+    inline Encoder& set_out_size(size_t size) { coded_output.resize(size); return *this; }
+    void run_encoder(const LDPC& cc, const InfoFrameType& info);
 
-    info_fram_t coded_o; // encoder output
+    InfoFrameType coded_output; // encoder output
 private:
 
 };

@@ -15,20 +15,20 @@ using std::to_string;
 using std::cout;
 using std::endl;
 
-using pos_t = int16_t;
-using trans_symbol_width = float;
-using bit_t = char;                           // use char to a bit
-using info_fram_t = vector<bit_t>;
-using llr_width = trans_symbol_width;
-using rece_seq = vector<trans_symbol_width>;
-using llr_seq = vector<llr_width>;
-enum  de_algo {msa, spa};
+using PosType = int16_t;
+using SymbolWidthType = float;
+using BitType = char;                           // use char to a bit
+using InfoFrameType = vector<BitType>;
+using LLRWidthType = SymbolWidthType;
+using ReceivedSequencesType = vector<SymbolWidthType>;
+using LLRSequencesType = vector<LLRWidthType>;
+enum  DE_ALGO {msa, spa};
 
 // extern class encoder;
 // extern class decoder;
 
 // for code configuration
-struct code_configure {
+struct CodeConfigure {
     int len;                    // code length
     int row;                    // row off H matrix
     int bits;                   // information bits length
@@ -53,54 +53,54 @@ class LDPC {
     // friend class encoder;
 
 public:
-    using nodeConn   = vector<pos_t>;
-    using matrixConn = vector<nodeConn>;
-    using genMatCol_t  = info_fram_t;
-    using genMat_t     = vector<genMatCol_t>;
+    using NodeConn   = vector<PosType>;
+    using MatrixConn = vector<NodeConn>;
+    using GeneratorMatrixColumn  = InfoFrameType;
+    using GeneratorMatrix     = vector<GeneratorMatrixColumn>;
     LDPC() = default;
-    LDPC(int _len, int _bits) : len(_len), bits(_bits), code_ratio(_bits/(_len+0.0)) {}
-    LDPC(const code_configure& ccf);
+    LDPC(int _len, int _bits) : len_(_len), bits_(_bits), code_ratio_(_bits/(_len+0.0)) {}
+    LDPC(const CodeConfigure& ccf);
     // initial code
     void initial(int _len, int _bits, int bx, int by, int _gf_1, const string& _cnsfile,
                 const string& _vnsfile, char delim = ',', char corr = 1);
     inline void init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr);
     inline void init_memo(const string& _cnsfile, const string& _vnsfile, const string& _genfile, char delim, char corr);
 
-    inline int get_len()   const { return len; }
-    inline int get_info_len() const { return bits; } // !TODO
-    inline bit_t get_gen_xy(int i, int j) const {
-        assert(i < genMat.size() && j < genMat[0].size());
-        return genMat[i][j]; };    // !TODO
-    inline int get_bits()  const { return bits;    }
-    inline int get_dc()    const { return dc;      }
-    inline int get_dv()    const { return dv;      }
-    inline int get_gf()    const { return gf_1;    }
-    inline int get_row()   const { return H_row;   }
-    inline int get_col()   const { return H_col;   }
-    inline pos_t get_cns_xy(int x, int y) const { return cns[x][y]; }
-    inline pos_t get_vns_xy(int x, int y) const { return vns[x][y]; }
+    inline int get_len()   const { return len_; }
+    inline int get_info_len() const { return bits_; } // !TODO
+    inline BitType get_gen_xy(int i, int j) const {
+        assert(i < genMat_.size() && j < genMat_[0].size());
+        return genMat_[i][j]; };    // !TODO
+    inline int get_bits()  const { return bits_;    }
+    inline int get_dc()    const { return dc_;      }
+    inline int get_dv()    const { return dv_;      }
+    inline int get_gf()    const { return gf_1_;    }
+    inline int get_row()   const { return row_of_h_matrix_;   }
+    inline int get_col()   const { return column_of_h_matrix_;   }
+    inline PosType get_cns_xy(int x, int y) const { return cns_[x][y]; }
+    inline PosType get_vns_xy(int x, int y) const { return vns_[x][y]; }
 
-    inline double get_code_ratio() const { return code_ratio; }
-    inline int get_cns_size() const { return cns.size(); }
-    inline string get_H_size() const { return to_string(H_row) + "x" + to_string(H_col); }
+    inline double get_code_ratio() const { return code_ratio_; }
+    inline int get_cns_size() const { return cns_.size(); }
+    inline string get_H_size() const { return to_string(row_of_h_matrix_) + "x" + to_string(column_of_h_matrix_); }
     void set_genMat(const string& file, char delim);
 
 private:
-    int len;                    // code length
-    int bits;                   // messages bits length of code
-    int dc;                     // weight of row of H
-    int dv;                     // weight of col of H
-    int gf_1;                   // Galois field
-    int H_row;                  // row of H_matrix
-    int H_col;                  // col of H_matrix
-    double code_ratio;          // encode ratio
-    matrixConn cns;             // row connections of H
-    matrixConn vns;             // col connections of H
-    genMat_t   genMat;          // generation matrix
+    int len_;                    // code length
+    int bits_;                   // messages bits length of code
+    int dc_;                     // weight of row of H
+    int dv_;                     // weight of col of H
+    int gf_1_;                   // Galois field
+    int row_of_h_matrix_;                  // row of H_matrix
+    int column_of_h_matrix_;                  // col of H_matrix
+    LLRWidthType code_ratio_;          // encode ratio
+    MatrixConn cns_;             // row connections of H
+    MatrixConn vns_;             // col connections of H
+    GeneratorMatrix   genMat_;          // generation matrix
     // string cns_file_path;       // cns_file_path
     // string vns_file_path;       // vns_file_path
 
-    void read_conn(matrixConn& to_mat, const string& file, char delim, char corr);
+    void read_conn(MatrixConn& to_mat, const string& file, char delim, char corr);
 };
 
 #endif

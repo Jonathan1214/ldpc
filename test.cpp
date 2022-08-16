@@ -29,7 +29,7 @@ void init_code() {
 }
 
 
-void parse_input(const string& s, info_fram_t& out, char delim) {
+void parse_input(const string& s, InfoFrameType& out, char delim) {
     int bits = out.size();
     int ix = 0;
     int st = 0;
@@ -44,7 +44,7 @@ void parse_input(const string& s, info_fram_t& out, char delim) {
     assert(i == bits);
 }
 
-bool comp_equal(info_fram_t& case_out, info_fram_t& coded_out) {
+bool comp_equal(InfoFrameType& case_out, InfoFrameType& coded_out) {
     assert(case_out.size() == coded_out.size());
     int size = case_out.size();
     for (int i = 0; i < size; ++i) {
@@ -65,8 +65,8 @@ void test_code() {
     int bits = ac.get_info_len();
     char delim = ' ';
     int line = 0;
-    info_fram_t case_in(bits, 0);
-    info_fram_t case_out(len, 0);
+    InfoFrameType case_in(bits, 0);
+    InfoFrameType case_out(len, 0);
     int ok_cnt = 0;
     while (line < ac.get_len() && getline(fp_case_in, s)) {
         parse_input(s, case_in, delim);
@@ -74,7 +74,7 @@ void test_code() {
         parse_input(s, case_out, delim);
 
         encoder.run_encoder(ac, case_in);
-        if (comp_equal(case_out, encoder.coded_o)) ok_cnt++;
+        if (comp_equal(case_out, encoder.coded_output)) ok_cnt++;
         else {
             cout << "ok cnt : " << ok_cnt << endl;
             exit(-3);

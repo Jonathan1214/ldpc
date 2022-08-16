@@ -3,60 +3,60 @@
 void LDPC::initial(int _len, int _bits, int bx, int by, int _gf_1, const string& _cnsfile,
                 const string& _vnsfile, char delim, char corr) {
 
-    len = _len;
-    bits = _bits;
-    dc = by;
-    dv = bx;
-    code_ratio = _bits / (_len + 0.0);
-    gf_1 = _gf_1;
-    H_row = bx*_gf_1;
-    H_col = by*_gf_1;
+    len_ = _len;
+    bits_ = _bits;
+    dc_ = by;
+    dv_ = bx;
+    code_ratio_ = _bits / (_len + 0.0);
+    gf_1_ = _gf_1;
+    row_of_h_matrix_ = bx*_gf_1;
+    column_of_h_matrix_ = by*_gf_1;
 
     init_memo(_cnsfile, _vnsfile, delim, corr);
 }
 
 void LDPC::init_memo(const string& _cnsfile, const string& _vnsfile, char delim, char corr) {
-    cns.assign(H_row, nodeConn(dc, 0));
-    assert(cns.size() == H_row);
-    read_conn(cns, _cnsfile, delim, corr);
+    cns_.assign(row_of_h_matrix_, NodeConn(dc_, 0));
+    assert(cns_.size() == row_of_h_matrix_);
+    read_conn(cns_, _cnsfile, delim, corr);
 
-    vns.assign(H_col, nodeConn(dv, 0));
-    assert(vns.size() == H_col);
-    read_conn(vns, _vnsfile, delim, corr);
+    vns_.assign(column_of_h_matrix_, NodeConn(dv_, 0));
+    assert(vns_.size() == column_of_h_matrix_);
+    read_conn(vns_, _vnsfile, delim, corr);
 }
 
 void LDPC::init_memo(const string& _cnsfile, const string& _vnsfile, const string& _genfile, char delim, char corr) {
-    cns.assign(H_row, nodeConn(dc, 0));
-    assert(cns.size() == H_row);
-    read_conn(cns, _cnsfile, delim, corr);
+    cns_.assign(row_of_h_matrix_, NodeConn(dc_, 0));
+    assert(cns_.size() == row_of_h_matrix_);
+    read_conn(cns_, _cnsfile, delim, corr);
 
-    vns.assign(H_col, nodeConn(dv, 0));
-    assert(vns.size() == H_col);
-    read_conn(vns, _vnsfile, delim, corr);
+    vns_.assign(column_of_h_matrix_, NodeConn(dv_, 0));
+    assert(vns_.size() == column_of_h_matrix_);
+    read_conn(vns_, _vnsfile, delim, corr);
 
-    genMat.assign(H_col, genMatCol_t(bits, 0));
-    assert(genMat.size() == H_col);
+    genMat_.assign(column_of_h_matrix_, GeneratorMatrixColumn(bits_, 0));
+    assert(genMat_.size() == column_of_h_matrix_);
     set_genMat(_genfile, ' ');
 
 }
 
-// read configuration from struct code_configure
-LDPC::LDPC(const code_configure& ccf) {
-    len = ccf.len;
-    bits = ccf.bits;
-    dc = ccf.dc;
-    dv = ccf.dv;
-    code_ratio = bits / (len + 0.0);
-    gf_1 = ccf.gf_1;
-    H_row = dv * gf_1;
-    H_col = dc * gf_1;
+// read configuration from struct CodeConfigure
+LDPC::LDPC(const CodeConfigure& ccf) {
+    len_ = ccf.len;
+    bits_ = ccf.bits;
+    dc_ = ccf.dc;
+    dv_ = ccf.dv;
+    code_ratio_ = bits_ / (len_ + 0.0);
+    gf_1_ = ccf.gf_1;
+    row_of_h_matrix_ = dv_ * gf_1_;
+    column_of_h_matrix_ = dc_ * gf_1_;
     if (ccf.encoding)
         init_memo(ccf.cnsfile, ccf.vnsfile, ccf.genfile, ccf.delim, ccf.corr);
     else
         init_memo(ccf.cnsfile, ccf.vnsfile, ccf.delim, ccf.corr);
 }
 
-void LDPC::read_conn(matrixConn& to_mat, const string& file, char delim, char corr) {
+void LDPC::read_conn(MatrixConn& to_mat, const string& file, char delim, char corr) {
     int x = to_mat.size();
     assert(x > 0);
     int y = to_mat[0].size();
@@ -90,25 +90,25 @@ LDPC::set_genMat(const string& file, char delim) {
     assert(fp.is_open());
     string s;
     int line = 0;
-    while (line < len && getline(fp, s)) {
+    while (line < len_ && getline(fp, s)) {
        int ix = 0;
        int st = 0;
-       for (int i = 0; i < bits; ++i) {
+       for (int i = 0; i < bits_; ++i) {
            st = ix;
            while (ix < s.size() && s[ix] != delim) ix++;
-           genMat[line][i] = stoi(s.substr(st, ix - st));
-           assert(genMat[line][i] == 0 || genMat[line][i] == 1);
+           genMat_[line][i] = stoi(s.substr(st, ix - st));
+           assert(genMat_[line][i] == 0 || genMat_[line][i] == 1);
            ix++;
        }
        line++;
     }
     fp.close();
-    assert(line == len);
+    assert(line == len_);
 }
 
 // 友元函数定义
 void print_any_thing(LDPC &c) {
-    for (auto it : c.cns.back()) 
+    for (auto it : c.cns_.back()) 
         cout << it << " ";
     cout << endl;
 }

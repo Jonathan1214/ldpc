@@ -4,7 +4,7 @@
 #include <random>
 #include "ldpc.h"
 
-extern llr_width noise;
+extern LLRWidthType noise;
 #define rand_ra() (int)((30000. * rand()) / ((double)RAND_MAX))
 #define PI 3.1415926
 
@@ -13,14 +13,14 @@ using std::mt19937;
 
 class Channel {
 public:
-    Channel() : nd(0, 1) { } 
-    Channel(uint_fast32_t sd, int mean, int stdvar): rng(sd), nd(mean, stdvar) { }
+    Channel() : nd_(0, 1) { } 
+    Channel(uint_fast32_t sd, int mean, int stdvar): rng_(sd), nd_(mean, stdvar) { }
     double awgn();
 
 private:
-    mt19937 rng;
+    mt19937 rng_;
     // normal guassian distribution
-    normal_distribution<> nd;
+    normal_distribution<> nd_;
 };
 
 

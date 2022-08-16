@@ -6,11 +6,11 @@
  *
 */
 double Channel::awgn() {
-    return nd(rng);
+    return nd_(rng_);
 }
 
 
-llr_width noise;
+LLRWidthType noise;
 void AWGN(void)
 {
     double random1, random2, random3, random4;

@@ -12,9 +12,9 @@ using namespace std;
 time_t curtime;
 tm* logtime;
 
-code_configure ccf;
-const int MAX_BLK = 1e6;
-#define log_de(ebn0, tot_blk, err_blk, err_bits, type) do { \
+CodeConfigure ccf;
+const int kMaxBlock = 1e6;
+#define LOG_DE(ebn0, tot_blk, err_blk, err_bits, type) do { \
         curtime = time(0); \
         logtime = localtime(&curtime); \
         fprintf(stdout, type" [%02d-%02d-%02d %02d:%02d:%02d]  %6.2f  %10llu  %4d  %5d\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
@@ -23,7 +23,7 @@ const int MAX_BLK = 1e6;
         fflush(stdout); \
     } while (0)\
 
-#define log_de_ratio(ebn0, tot_blk, err_blk, err_bits, frame_len, type) do { \
+#define LOG_DE_RATIO(ebn0, tot_blk, err_blk, err_bits, frame_len, type) do { \
         curtime = time(0); \
         logtime = localtime(&curtime); \
         fprintf(stdout, type" [%02d-%02d-%02d %02d:%02d:%02d]  %6.2f  %10llu  %4d  %5d  %.10f  %.10f\n", logtime->tm_year + 1900, logtime->tm_mon + 1, logtime->tm_mday, \
@@ -32,10 +32,10 @@ const int MAX_BLK = 1e6;
         fflush(stdout); \
     } while (0)\
 
-#define initial_code(code) do { for (auto &c : code) c = rand() % 2; } while (0)
-#define configure_d(code_c, param) code_c.param = atoi(optarg);
-#define configure(code_c, param) code_c.param = string(optarg);
-#define configure_f(code_c, param) code_c.param = atof(optarg);
+#define INITIAL_CODE(code) do { for (auto &c : code) c = rand() % 2; } while (0)
+#define CONFIGURE_D(code_c, param) code_c.param = atoi(optarg);
+#define CONFIGURE(code_c, param) code_c.param = string(optarg);
+#define CONFIGURE_F(code_c, param) code_c.param = atof(optarg);
 #define HELP() cout << "This is a QC-LDPC simulator which show how well a code is\n"                       << endl; \
                 cout << "Here is the configuration of the simulator:"                                       << endl; \
                 cout << " --len             code length                     ex: 2048"                       << endl; \
@@ -102,23 +102,23 @@ static inline void parse_arg(int argc, char *argv[]) {
         switch (o) {
         case 'l':
             printf("length of code is %s\n", optarg);
-            configure_d(ccf, len);
+            CONFIGURE_D(ccf, len);
             break;
         case 'r':
             printf("row of code is %s\n", optarg);
-            configure_d(ccf, row);
+            CONFIGURE_D(ccf, row);
             break;
         case 'b':
             printf("bits of code is %s\n", optarg);
-            configure_d(ccf, bits);
+            CONFIGURE_D(ccf, bits);
             break;
         case 'c':
             printf("cnfile of code is %s\n", optarg);
-            configure(ccf, cnsfile);
+            CONFIGURE(ccf, cnsfile);
             break;
         case 'v':
             printf("vnfile of code is %s\n", optarg);
-            configure(ccf, vnsfile);
+            CONFIGURE(ccf, vnsfile);
             break;
         case 'd':
             // TODO select decoding algorithm
@@ -126,7 +126,7 @@ static inline void parse_arg(int argc, char *argv[]) {
             break;
         case 'i': 
             printf("iteraion of decoding is %s\n", optarg); 
-            configure_d(ccf, iteration);
+            CONFIGURE_D(ccf, iteration);
             break;
         case 'a':
             printf("attenuation of decoding is 0.%s\n", optarg);
@@ -136,31 +136,31 @@ static inline void parse_arg(int argc, char *argv[]) {
         case 'x': 
             printf("genematrix of code is %s\n", optarg); 
             assert(optarg != NULL);
-            configure(ccf, genfile);
+            CONFIGURE(ccf, genfile);
             break;
         case 'C': 
             printf("check node weight of code is %s\n", optarg); 
-            configure_d(ccf, dc);
+            CONFIGURE_D(ccf, dc);
             break;
         case 'V': 
             printf("variable node weight of code is %s\n", optarg); 
-            configure_d(ccf, dv);
+            CONFIGURE_D(ccf, dv);
             break;
         case 'G': 
             printf("GF of code is %s\n", optarg); 
-            configure_d(ccf, gf_1);
+            CONFIGURE_D(ccf, gf_1);
             break;
         case 's': 
             printf("start ebno of simulation is %s\n", optarg); 
-            configure_f(ccf, sebn0);
+            CONFIGURE_F(ccf, sebn0);
             break;
         case 'S': 
             printf("step ebno of simulation is %s\n", optarg); 
-            configure_f(ccf, spebn0);
+            CONFIGURE_F(ccf, spebn0);
             break;
         case 'E': 
             printf("end ebno of simulation %s\n", optarg); 
-            configure_f(ccf, eebn0);
+            CONFIGURE_F(ccf, eebn0);
             break;
         case 'e': 
             printf("encoding selection is %s\n", optarg); 
@@ -201,9 +201,9 @@ void test_decoder()
 
 
     // base sequence
-    info_fram_t basecode(ac.get_bits(), 0);
+    InfoFrameType basecode(ac.get_bits(), 0);
     // initial code
-    rece_seq re_seqs(ac.get_col(), 0);
+    ReceivedSequencesType re_seqs(ac.get_col(), 0);
     time_t st = time(0);
     for (float ebn0 = ccf.sebn0; ebn0 < ccf.eebn0 + 0.0001; ebn0 += ccf.spebn0) {
         double esn0 = ac.get_code_ratio() * pow(10, ebn0 / 10.0);
@@ -212,12 +212,12 @@ void test_decoder()
         int err_bits = 0;
         while (err_blk < 10)
         {
-            initial_code(basecode);
+            INITIAL_CODE(basecode);
             if (ccf.encoding) encoder.run_encoder(ac, basecode);
 
             for (int i = 0; i < re_seqs.size(); ++i)
             {
-                re_seqs[i] = 1 - 2 * encoder.coded_o[i];
+                re_seqs[i] = 1 - 2 * encoder.coded_output[i];
             }
 
             // pass channel
@@ -231,12 +231,12 @@ void test_decoder()
             tot_blk++;
             if (decoder.run_decoder(ac, re_seqs, ebn0)) {
                 err_blk++;
-                err_bits += get_err_bits(encoder.coded_o, decoder.out_seqs);
+                err_bits += decoder.get_err_bits(encoder.coded_output);
             }
-            if (tot_blk % MAX_BLK == 0)
-                log_de_ratio(ebn0, tot_blk, err_blk, err_bits, ccf.len, "[ROUTINE]");
+            if (tot_blk % kMaxBlock == 0)
+                LOG_DE_RATIO(ebn0, tot_blk, err_blk, err_bits, ccf.len, "[ROUTINE]");
         }
-        log_de_ratio(ebn0, tot_blk, err_blk, err_bits, ccf.len, "[OK]");
+        LOG_DE_RATIO(ebn0, tot_blk, err_blk, err_bits, ccf.len, "[OK]");
     }
     fprintf(stdout, "[END]----------------\n\n");
 }

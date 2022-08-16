@@ -1,6 +1,6 @@
 #ifndef _DECODER_H_
 #define _DECODER_H_
-#include "../LDPCc/ldpc.h"
+#include "ldpc.h"
 #include <algorithm>
 #include <cmath>
 #include <ctime>
@@ -17,11 +17,11 @@ public:
     Decoder() = default;
     Decoder(int _iteration, float _attenuation) : iteration(_iteration), 
             attenuation(_attenuation) {}
-    Decoder(const code_configure& ccf);
+    Decoder(const CodeConfigure& ccf);
     void initial(const LDPC& cc);
-    void initial(const code_configure& ccf);
+    void initial(const CodeConfigure& ccf);
     // use MSA by default
-    int run_decoder(const LDPC &cc, const rece_seq &sq, double ebn0, de_algo algo = msa);
+    int run_decoder(const LDPC &cc, const ReceivedSequencesType &sq, double ebn0, DE_ALGO algo = msa);
 
     inline Decoder &set_iter(int iter) {
         this->iteration = iter;
@@ -37,31 +37,30 @@ public:
         return this->set_iter(iter).set_atten(atten);
     }
 
-    const vector<bit_t>& get_out_seqs() const { return out_seqs; }
+    const InfoFrameType& get_out_seqs() const { return decoded_sequence_; }
     inline int get_iter() const { return iteration; }
     inline float get_atten() const { return attenuation; }
 
-    info_fram_t out_seqs;     // decoder output
+    int get_err_bits(const InfoFrameType& base) const;
 
 private:
-    int run_use_msa(const LDPC &cc, const rece_seq &sq, double ebn0);
-    int run_use_spa(const LDPC &cc, const rece_seq &sq, double ebn0);
+    int run_use_msa(const LDPC &cc, const ReceivedSequencesType &sq, double ebn0);
+    int run_use_spa(const LDPC &cc, const ReceivedSequencesType &sq, double ebn0);
 
-    inline void get_llr(const rece_seq &sq, double code_ratio, double ebn0);
+    inline void get_llr(const ReceivedSequencesType &sq, double code_ratio, double ebn0);
     void cn_update(const LDPC &cc);
     void vn_update(const LDPC &cc);
     inline int check(const LDPC &cc); // return checksum of all row check of LDPC code
 
     int iteration;              // iteration for LDPC decoding
     float attenuation;         // attenuation
-    vector<llr_seq> cns_llr;    // llr during vn update
-    vector<llr_seq> vns_llr;    // llr during vn update
-    llr_seq sum_llr;            // sum of all llr during vn update
-    llr_seq initial_llr;        // channel info
+    vector<LLRSequencesType> cns_llr_;    // llr during vn update
+    vector<LLRSequencesType> vns_llr_;    // llr during vn update
+    LLRSequencesType sum_llr_;            // sum of all llr during vn update
+    LLRSequencesType initial_llr_;        // channel info
+    InfoFrameType decoded_sequence_;     // decoder output
 
     unsigned long long checkfailed = 0;
 };
-
-inline int get_err_bits(const info_fram_t& iseq, const info_fram_t& oseq);
 
 #endif
