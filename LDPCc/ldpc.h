@@ -19,7 +19,7 @@ using std::istringstream;
 
 using PosType = int16_t;
 using SymbolWidthType = float;
-using BitType = char;  // use char to a bit
+using BitType = int8_t;  // use char to a bit
 using InfoFrameType = vector<BitType>;
 using LLRWidthType = SymbolWidthType;
 using ReceivedSequencesType = vector<SymbolWidthType>;
