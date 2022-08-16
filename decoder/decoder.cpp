@@ -1,69 +1,69 @@
 #include "decoder.h"
 
-#define debug_vn(vn) { \
-    cout << "\n ---> iteration vn" << iter << endl; \
-    cout << " llr init: " << initial_llr_[vn] << endl; \
-    for (int j = 0; j < cc.get_dv(); ++j) { \
-        if (cc.get_vns_xy(vn, j) < 0) continue; \
-        cout << cns_llr_[cc.get_vns_xy(vn, j)][vn / cc.get_gf()] << " "; \
-    } \
-    cout << endl; \
-    cout << sum_llr_[vn] << endl; \
-} \
+#define debug_vn(vn)                                                   \
+  {                                                                    \
+    cout << "\n ---> iteration vn" << iter << endl;                    \
+    cout << " llr init: " << initial_llr_[vn] << endl;                 \
+    for (int j = 0; j < cc.get_dv(); ++j) {                            \
+      if (cc.get_vns_xy(vn, j) < 0) continue;                          \
+      cout << cns_llr_[cc.get_vns_xy(vn, j)][vn / cc.get_gf()] << " "; \
+    }                                                                  \
+    cout << endl;                                                      \
+    cout << sum_llr_[vn] << endl;                                      \
+  }
 
-#define debug_cn(cn) { \
-    cout << "\n ---> iteration cn " << iter << " atten " <<endl; \
-    cout << ">> input "; \
-    for (int j = 0; j < cc.get_dc(); ++j) { \
-        if (cc.get_cns_xy(cn, j) < 0) continue; \
-        cout << vns_llr_[cc.get_cns_xy(cn, j)][cn / cc.get_gf()] << " "; \
-    } \
-    cout << "\n>> output "; \
-    for (int i = 0; i < cc.get_dc(); ++i) { \
-        if (cc.get_cns_xy(cn, i) < 0) cout << " x "; \
-        cout << cns_llr_[cn][i] << " "; \
-    } \
-    cout << endl; \
-} \
+#define debug_cn(cn)                                                   \
+  {                                                                    \
+    cout << "\n ---> iteration cn " << iter << " atten " << endl;      \
+    cout << ">> input ";                                               \
+    for (int j = 0; j < cc.get_dc(); ++j) {                            \
+      if (cc.get_cns_xy(cn, j) < 0) continue;                          \
+      cout << vns_llr_[cc.get_cns_xy(cn, j)][cn / cc.get_gf()] << " "; \
+    }                                                                  \
+    cout << "\n>> output ";                                            \
+    for (int i = 0; i < cc.get_dc(); ++i) {                            \
+      if (cc.get_cns_xy(cn, i) < 0) cout << " x ";                     \
+      cout << cns_llr_[cn][i] << " ";                                  \
+    }                                                                  \
+    cout << endl;                                                      \
+  }
 
-void
-Decoder::initial(const LDPC& cc) {
-    initial_llr_.assign(cc.get_len(), 0);
-    cns_llr_.assign(cc.get_row(), LLRSequencesType(cc.get_dc(), 0));
-    vns_llr_.assign(cc.get_col(), LLRSequencesType(cc.get_dv(), 0));
-    sum_llr_.assign(cc.get_col(), 0);
-    decoded_sequence_.assign(cc.get_col(), 0);
+void Decoder::initial(const LDPC &cc) {
+  initial_llr_.assign(cc.get_len(), 0);
+  cns_llr_.assign(cc.get_row(), LLRSequencesType(cc.get_dc(), 0));
+  vns_llr_.assign(cc.get_col(), LLRSequencesType(cc.get_dv(), 0));
+  sum_llr_.assign(cc.get_col(), 0);
+  decoded_sequence_.assign(cc.get_col(), 0);
 }
 
-void Decoder::initial(const CodeConfigure& ccf) {
-    initial_llr_.assign(ccf.len, 0);
-    cns_llr_.assign(ccf.row, LLRSequencesType(ccf.dc, 0));
-    vns_llr_.assign(ccf.len, LLRSequencesType(ccf.dv, 0));
-    sum_llr_.assign(ccf.len, 0);
-    decoded_sequence_.assign(ccf.len, 0);
+void Decoder::initial(const CodeConfigure &ccf) {
+  initial_llr_.assign(ccf.len, 0);
+  cns_llr_.assign(ccf.row, LLRSequencesType(ccf.dc, 0));
+  vns_llr_.assign(ccf.len, LLRSequencesType(ccf.dv, 0));
+  sum_llr_.assign(ccf.len, 0);
+  decoded_sequence_.assign(ccf.len, 0);
 }
 
-Decoder::Decoder(const CodeConfigure& ccf)
+Decoder::Decoder(const CodeConfigure &ccf)
     : iteration(ccf.iteration), attenuation(ccf.attenuation) {
-    initial(ccf);
+  initial(ccf);
 }
 
-int
-Decoder::run_decoder(const LDPC &cc, const ReceivedSequencesType &sq, double ebn0, DE_ALGO algo) {
-    // 简单判断长度是否相等
-    assert(cc.get_len() == sq.size());
-    switch (algo)
-    {
-        case msa:
-            return run_use_msa(cc, sq, ebn0);
-            break;
-        case spa:
-            return run_use_spa(cc, sq, ebn0);
-            break;
-        default:
-            break;
-    }
-    return 0;
+int Decoder::run_decoder(const LDPC &cc, const ReceivedSequencesType &sq,
+                         double ebn0, DE_ALGO algo) {
+  // 简单判断长度是否相等
+  assert(cc.get_len() == sq.size());
+  switch (algo) {
+    case msa:
+      return run_use_msa(cc, sq, ebn0);
+      break;
+    case spa:
+      return run_use_spa(cc, sq, ebn0);
+      break;
+    default:
+      break;
+  }
+  return 0;
 }
 
 /**@brief run msa decoding
@@ -71,184 +71,176 @@ Decoder::run_decoder(const LDPC &cc, const ReceivedSequencesType &sq, double ebn
  * @param[in]  sq            received sequence for channel
  * @param[in]  ebno          channel condition
  * @param[out] int           1 -> success, 0 -> fail
-*/
-int 
-Decoder::run_use_msa(const LDPC &cc, const ReceivedSequencesType &sq, double ebn0) {
-    int len = cc.get_len();
-    get_llr(sq, cc.get_code_ratio(), ebn0);
+ */
+int Decoder::run_use_msa(const LDPC &cc, const ReceivedSequencesType &sq,
+                         double ebn0) {
+  int len = cc.get_len();
+  get_llr(sq, cc.get_code_ratio(), ebn0);
 
-    // initial matrix
+  // initial matrix
+  for (int i = 0; i < cc.get_col(); ++i) {
+    for (int j = 0; j < cc.get_dv(); ++j) {
+      vns_llr_[i][j] = cc.get_vns_xy(i, j) < 0 ? 0 : initial_llr_[i];
+    }
+  }
+
+  // per iteration
+  int iter = 0;
+  int decode_bad = 1;
+  while (iter < iteration && decode_bad) {
+    cn_update(cc);
+#ifndef NDEBUG
+    debug_cn(104);
+#endif
+    vn_update(cc);
+
+#ifndef NDEBUG
+    debug_vn(7);
+#endif
+
+    // check all
     for (int i = 0; i < cc.get_col(); ++i) {
-        for (int j = 0; j < cc.get_dv(); ++j) {
-            vns_llr_[i][j] = cc.get_vns_xy(i, j) < 0 ? 0 : initial_llr_[i];
-        }
+      decoded_sequence_[i] = (sum_llr_[i] >= 0) ? 0 : 1;
     }
 
-    // per iteration
-    int iter = 0;
-    int decode_bad = 1;
-    while (iter < iteration && decode_bad) {
-        cn_update(cc);
+    decode_bad = check(cc);
+    iter++;
+  }  // per iteration or decode_bad
+  if (decode_bad) checkfailed++;
 #ifndef NDEBUG
-debug_cn(104);
+  if (decode_bad) {
+    printf("check bad %u \n", checkfailed);
+  }
 #endif
-        vn_update(cc);
-
-#ifndef NDEBUG
-debug_vn(7);
-#endif
-
-        // check all
-        for (int i = 0; i < cc.get_col(); ++i) {
-            decoded_sequence_[i] = (sum_llr_[i] >= 0) ? 0 : 1;
-        }
-
-        decode_bad = check(cc);
-        iter++;
-    } // per iteration or decode_bad
-    if (decode_bad) checkfailed++;
-#ifndef NDEBUG
-    if (decode_bad) {
-        printf("check bad %u \n", checkfailed);
-    }
-#endif
-    return decode_bad;
+  return decode_bad;
 }
 
 /**@brief check node info update
  * @param[in] cc    LDPC code
  *
-*/
-void 
-Decoder::cn_update(const LDPC &cc) {
-    InfoFrameType sign_of_llr(cc.get_dc(), 0); // 0 means >= 0 else < 0
-    for (int i = 0; i < cc.get_row(); ++i) {
-        LLRWidthType min_llr = 10000, sub_min_llr = 10000;
-        BitType sign_all = 0;
-        PosType cn_index = i / cc.get_gf();
-        PosType min_llr_index = 0;
-        PosType vn_index = 0;
-        LLRWidthType cur_llr = 0;
-        LLRWidthType cur_llr_abs = 0;
+ */
+void Decoder::cn_update(const LDPC &cc) {
+  InfoFrameType sign_of_llr(cc.get_dc(), 0);  // 0 means >= 0 else < 0
+  for (int i = 0; i < cc.get_row(); ++i) {
+    LLRWidthType min_llr = 10000, sub_min_llr = 10000;
+    BitType sign_all = 0;
+    PosType cn_index = i / cc.get_gf();
+    PosType min_llr_index = 0;
+    PosType vn_index = 0;
+    LLRWidthType cur_llr = 0;
+    LLRWidthType cur_llr_abs = 0;
 
-        for (int j = 0; j < cc.get_dc(); ++j) {
-            vn_index = cc.get_cns_xy(i, j);
-            if (vn_index < 0) continue;
+    for (int j = 0; j < cc.get_dc(); ++j) {
+      vn_index = cc.get_cns_xy(i, j);
+      if (vn_index < 0) continue;
 
-            cur_llr = vns_llr_[vn_index][cn_index];
-            cur_llr_abs = fabs(cur_llr);
-            // sign of result
-            sign_of_llr[j] = cur_llr >= 0 ? 0 : 1;
-            sign_all ^= sign_of_llr[j];
+      cur_llr = vns_llr_[vn_index][cn_index];
+      cur_llr_abs = fabs(cur_llr);
+      // sign of result
+      sign_of_llr[j] = cur_llr >= 0 ? 0 : 1;
+      sign_all ^= sign_of_llr[j];
 
-            // compare to find min llr
-            if (min_llr > cur_llr_abs) {
-                sub_min_llr = min_llr;
-                min_llr = cur_llr_abs;
-                min_llr_index = j;
-            }
-            else if (sub_min_llr > cur_llr_abs) {
-                sub_min_llr = cur_llr_abs;
-            }
-        } // per vn
+      // compare to find min llr
+      if (min_llr > cur_llr_abs) {
+        sub_min_llr = min_llr;
+        min_llr = cur_llr_abs;
+        min_llr_index = j;
+      } else if (sub_min_llr > cur_llr_abs) {
+        sub_min_llr = cur_llr_abs;
+      }
+    }  // per vn
 
-        // with attenuation
-        min_llr     *= attenuation;
-        sub_min_llr *= attenuation;
-        for (int j = 0; j < cc.get_dc(); ++j) {
-            if (sign_all ^ sign_of_llr[j] == 1)
-                cns_llr_[i][j] = -min_llr;
-            else
-                cns_llr_[i][j] = min_llr;
-        } // write
+    // with attenuation
+    min_llr *= attenuation;
+    sub_min_llr *= attenuation;
+    for (int j = 0; j < cc.get_dc(); ++j) {
+      if (sign_all ^ sign_of_llr[j] == 1)
+        cns_llr_[i][j] = -min_llr;
+      else
+        cns_llr_[i][j] = min_llr;
+    }  // write
 
-        // deal with special case
-        if (sign_all ^ sign_of_llr[min_llr_index] == 1)
-            cns_llr_[i][min_llr_index] = -sub_min_llr;
-        else
-            cns_llr_[i][min_llr_index] = sub_min_llr;
+    // deal with special case
+    if (sign_all ^ sign_of_llr[min_llr_index] == 1)
+      cns_llr_[i][min_llr_index] = -sub_min_llr;
+    else
+      cns_llr_[i][min_llr_index] = sub_min_llr;
 
-    } // per cn
+  }  // per cn
 }
 
 /**@brief variable node info update
  * @param[in] cc    LDPC code
  *
-*/
-void
-Decoder::vn_update(const LDPC &cc) {
-    // sum of llr all
-    for (int i = 0; i < cc.get_col(); ++i) {
-        PosType vn_index = i / cc.get_gf();
-        sum_llr_[i] = initial_llr_[i];
-        for (int j = 0; j < cc.get_dv(); ++j) {
-            int cn_index = cc.get_vns_xy(i, j);
-            if (cn_index < 0) continue;
-            sum_llr_[i] += cns_llr_[cn_index][vn_index];
-        } // sum llr
-    } // per vn
+ */
+void Decoder::vn_update(const LDPC &cc) {
+  // sum of llr all
+  for (int i = 0; i < cc.get_col(); ++i) {
+    PosType vn_index = i / cc.get_gf();
+    sum_llr_[i] = initial_llr_[i];
+    for (int j = 0; j < cc.get_dv(); ++j) {
+      int cn_index = cc.get_vns_xy(i, j);
+      if (cn_index < 0) continue;
+      sum_llr_[i] += cns_llr_[cn_index][vn_index];
+    }  // sum llr
+  }    // per vn
 
-
-    // vnupdate
-    for (int i = 0; i < cc.get_col(); ++i) {
-        PosType vn_index = i / cc.get_gf();
-        for (int j = 0; j < cc.get_dv(); ++j) {
-            int cn_index = cc.get_vns_xy(i, j);
-            if (cn_index < 0) continue; // null point
-            vns_llr_[i][j] = sum_llr_[i] - cns_llr_[cn_index][vn_index];
-        } // per cn
-    } // per cn
+  // vnupdate
+  for (int i = 0; i < cc.get_col(); ++i) {
+    PosType vn_index = i / cc.get_gf();
+    for (int j = 0; j < cc.get_dv(); ++j) {
+      int cn_index = cc.get_vns_xy(i, j);
+      if (cn_index < 0) continue;  // null point
+      vns_llr_[i][j] = sum_llr_[i] - cns_llr_[cn_index][vn_index];
+    }  // per cn
+  }    // per cn
 }
 
 /**@brief check if decoding success
  * @param[in]  cc    LDPC code
  * @param[out] int   0 -> check success, else -> check fail
-*/
-int
-Decoder::check(const LDPC &cc) {
-    int checksum = 0;
-    for (int i = 0; i < cc.get_row(); ++i) {
-        BitType row_check = 0;
-        for (int j = 0; j < cc.get_dc(); ++j) {
-            if (cc.get_cns_xy(i, j) < 0) continue;
-            row_check ^= decoded_sequence_[cc.get_cns_xy(i, j)]; // with correction
-        }
-        if (row_check > 0) return 1;
+ */
+int Decoder::check(const LDPC &cc) {
+  int checksum = 0;
+  for (int i = 0; i < cc.get_row(); ++i) {
+    BitType row_check = 0;
+    for (int j = 0; j < cc.get_dc(); ++j) {
+      if (cc.get_cns_xy(i, j) < 0) continue;
+      row_check ^= decoded_sequence_[cc.get_cns_xy(i, j)];  // with correction
     }
-    return 0;
+    if (row_check > 0) return 1;
+  }
+  return 0;
 }
 
 /**@brief calc LLR from received sequence at channel condition ebn0
  * @param[in] sq          channel output to decoder
  * @param[in] code_ratio  code ration of ldpc code
  * @param[in] ebn0        channel condition
-*/
-void
-Decoder::get_llr(const ReceivedSequencesType &sq, double code_ratio, double ebn0) {
-    double EsN0 = code_ratio * pow(10, ebn0/10.0);
-    for (int i = 0; i < sq.size(); ++i) {
-        initial_llr_[i] = 4 * sq[i] * EsN0;
-    }
+ */
+void Decoder::get_llr(const ReceivedSequencesType &sq, double code_ratio,
+                      double ebn0) {
+  double EsN0 = code_ratio * pow(10, ebn0 / 10.0);
+  for (int i = 0; i < sq.size(); ++i) {
+    initial_llr_[i] = 4 * sq[i] * EsN0;
+  }
 }
 
-int
-Decoder::run_use_spa(const LDPC &cc, const ReceivedSequencesType &sq, double ebn0) {
-
-    return 0;
+int Decoder::run_use_spa(const LDPC &cc, const ReceivedSequencesType &sq,
+                         double ebn0) {
+  return 0;
 }
 
 /**@brief count error bits inside frame
  * @param[in] iseq encoder output sequence
  * @param[in] oseq decoder output sequence
  *
-*/
-int
-Decoder::get_err_bits(const InfoFrameType& base) const {
-    assert(decoded_sequence_.size() == base.size());
-    int err = 0;
-    int size = decoded_sequence_.size();
-    for (int i = 0; i < size; ++i)
-        if (decoded_sequence_[i] ^ base[i])
-            err++;
-    return err;
+ */
+int Decoder::get_err_bits(const InfoFrameType &base) const {
+  assert(decoded_sequence_.size() == base.size());
+  int err = 0;
+  int size = decoded_sequence_.size();
+  for (int i = 0; i < size; ++i)
+    if (decoded_sequence_[i] ^ base[i]) err++;
+  return err;
 }
