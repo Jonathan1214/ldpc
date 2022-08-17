@@ -13,6 +13,7 @@
 #include "ldpc.h"
 
 using std::ofstream;
+using std::cerr;
 using MatrixConn =  LDPC::MatrixConn;
 using GeneratorMatrix = LDPC::GeneratorMatrix;
 using GeneratorMatrixColumn = LDPC::GeneratorMatrixColumn;
@@ -25,6 +26,71 @@ struct BlockGeneratorMatrix {
   GeneratorMatrix blk4 = GeneratorMatrix(blk_size, GeneratorMatrixColumn(blk_size));
   GeneratorMatrix blk5 = GeneratorMatrix(blk_size, GeneratorMatrixColumn(blk_size));
 } blk_gene_mat;
+
+void read_a_block(GeneratorMatrix& mat, const string& filename, char delim) {
+  int n = mat.size();
+  int m = mat[0].size();
+  ifstream fp;
+  fp.open(filename);
+  assert(fp.is_open());
+  string line;
+  int nline = 0;
+  while (getline(fp, line)) {
+    istringstream read_str(line);
+    string cur;
+    for (int i = 0; i < m; ++i) {
+      getline(read_str, cur, delim);
+      int val = stoi(cur);
+      mat[nline][i] = val;
+    }
+    nline++;
+  }
+  fp.close();
+}
+
+// 用迭代器的起始区分不同的 blk
+class BlockCode {
+  // typedef GeneratorMatrix::iterator GeneratorMatrixIter;
+  using GeneratorMatrixIter =  GeneratorMatrix::iterator;
+ public:
+  BlockCode(int blksize, int blkcnt): blkall_(blksize, GeneratorMatrixColumn(blkcnt*blksize)) { }
+  // void encoder_a_block(InfoFrameType& out_sequence, const InforFramType& in_sequence, const GeneratorMatrixIter first, const GeneratorMatrixIter last) {
+  //   int expect_out_len = std::distance(first, last);
+  //   int expect_bits_len = std::distance(first, last);
+  //   int in_len = in_sequence.size();
+  //   int out_len = out_sequence.size();
+  //   assert()
+  // }
+  // 初始化生成矩阵
+  BlockCode& init_generator_matrix(const string& filename, char delim) {
+    ::read_a_block(blkall_, filename, delim);
+    return *this;
+  }
+
+  // 测试一个 block 编码
+  void encocde_a_block(InfoFrameType& out_sequence, const InfoFrameType& in_sequence, int first, int last) const {
+    int expect_info_len = last - first;
+    int in_len = in_sequence.size();
+    int out_len = out_sequence.size();
+    assert(in_len == expect_info_len);
+    assert(last <= blkall_[0].size());
+    assert(out_len == blkall_.size());
+
+    // based on the memory order of blkall_
+    for (int i = 0; i < out_len; ++i) {
+      BitType cur = 0;
+      for (int j = first; j < last; ++j)
+        cur ^= blkall_[i][j] & in_sequence[j];
+      out_sequence[i] = cur;
+    }
+  }
+ private:
+  GeneratorMatrix blkall_;
+  // GeneratorMatrixIter start_p_;
+  // GeneratorMatrixIter end_p_;
+};
+
+GeneratorMatrix blkall(blk_size, GeneratorMatrixColumn(5*blk_size));
 
 CodeConfigure ccf4x24 = {
     .len = 6144,      //  code length
@@ -101,27 +167,6 @@ void read_conn(MatrixConn& to_mat, const string& file, char delim,
   assert(line == x);
 }
 
-void read_a_block(GeneratorMatrix& mat, const string& filename, char delim) {
-  int n = mat.size();
-  int m = mat[0].size();
-  ifstream fp;
-  fp.open(filename);
-  assert(fp.is_open());
-  string line;
-  int nline = 0;
-  while (getline(fp, line)) {
-    istringstream read_str(line);
-    string cur;
-    for (int i = 0; i < m; ++i) {
-      getline(read_str, cur, delim);
-      int val = stoi(cur);
-      mat[nline][i] = val;
-    }
-    nline++;
-  }
-  fp.close();
-}
-
 // test_enable a blk
 void encode_a_block(InfoFrameType& out_sequence, const GeneratorMatrix& gene_mat, 
                     InfoFrameType& in_sequence) {
@@ -137,27 +182,71 @@ void encode_a_block(InfoFrameType& out_sequence, const GeneratorMatrix& gene_mat
     }
     out_sequence[i] = cur;
   }
+  cerr << "encode done." << endl;
+}
+
+void encode_a_block_colwise(InfoFrameType& out_sequence, const GeneratorMatrix& gene_mat, 
+                    InfoFrameType& in_sequence) {
+  int n = gene_mat.size();
+  int m = gene_mat[0].size();
+  assert(in_sequence.size() == m);
+  assert(out_sequence.size() == n);
+  for (int i = 0; i < n; ++i) {
+    BitType cur = 0;
+    for (int j = 0; j < m; ++j) {
+      // use And operation for encoding
+      cur ^= gene_mat[i][j] & in_sequence[j];
+    }
+    out_sequence[i] = cur;
+  }
+  cerr << "encode done." << endl;
 }
 
 namespace test {
 
+// 打印输出到文件
+inline void out_to_file(const InfoFrameType& seq, const string& fname) {
+  ofstream fp;
+  fp.open(fname);
+  assert(fp.is_open());
+  int n = seq.size();
+  for (int i = 0; i < n; ++i) fp << seq[i] - 0 << " ";
+  fp.close();
+}
+
 void test_all_ones_encode(const GeneratorMatrix& mat, const string& fname) {
-  const int blk = 1024;
-  const int outsize = 1024;
-  InfoFrameType in_seq(blk);
-  InfoFrameType out_seq(outsize);
-  for (int i = 0; i < blk; ++i) in_seq[i] = 1;
+  int n = mat.size();
+  int m = mat[0].size();
+  InfoFrameType in_seq(m);
+  InfoFrameType out_seq(n);
+  for (int i = 0; i < m; ++i) in_seq[i] = 1;
 
   // encoder
   encode_a_block(out_seq, mat, in_seq);
   ofstream fp;
   fp.open(fname);
   assert(fp.is_open());
-  for (int i = 0; i < outsize; ++i) fp << out_seq[i] - 0 << " ";
+  for (int i = 0; i < n; ++i) fp << out_seq[i] - 0 << " ";
   fp.close();
 }
 
+// 从 BlockCode 进行测试
+void test_all_ones_blk_code(const BlockCode& cc, const string& fname, int blksize, int blkcnt, int blk_idx) {
+  int m = blk_idx * blksize;
+  InfoFrameType in_seq(m);
+  InfoFrameType out_seq(blksize);
+  for (int i = 0; i < m; ++i) in_seq[i] = 1;
+  cc.encocde_a_block(out_seq, in_seq, (blk_idx-1)*blksize, blk_idx*blksize);
+  out_to_file(out_seq, fname);
 }
+
+} // namespace test
+
+namespace demo
+{
+  
+} // namespace demo
+
 
 int main() {
   cout << "This a multi-ratio test fucntion" << endl;
@@ -174,12 +263,25 @@ int main() {
   read_a_block(blk_gene_mat.blk4, "./matrix/partGFile4.csv", ',');
   read_a_block(blk_gene_mat.blk5, "./matrix/partGFile5.csv", ',');
   cout << "read ok" << endl;
+  read_a_block(blkall, "./matrix/partG.csv", ',');
+  cout <<  "read ok" << endl;;
 
   test::test_all_ones_encode(blk_gene_mat.blk1, "./test-output-logs/blk1_test.txt");
   test::test_all_ones_encode(blk_gene_mat.blk2, "./test-output-logs/blk2_test.txt");
   test::test_all_ones_encode(blk_gene_mat.blk3, "./test-output-logs/blk3_test.txt");
   test::test_all_ones_encode(blk_gene_mat.blk4, "./test-output-logs/blk4_test.txt");
   test::test_all_ones_encode(blk_gene_mat.blk5, "./test-output-logs/blk5_test.txt");
+  cout << sizeof(blkall) << " "  << blkall.size() << endl;
+  test::test_all_ones_encode(blkall, "./test-output-logs/blkall_test_ones.txt");
+
+  BlockCode cc(1024, 5);
+  cc.init_generator_matrix("./matrix/partG.csv", ',');
+
+  test::test_all_ones_blk_code(cc, "./test-output-logs/blk_ones1.txt", 1024, 5, 1);
+  test::test_all_ones_blk_code(cc, "./test-output-logs/blk_ones2.txt", 1024, 5, 2);
+
+  // encode example
+  // LDPC cc(ccf4x24);
 
   return 0;
 }
