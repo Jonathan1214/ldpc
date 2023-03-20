@@ -19,10 +19,18 @@ class Channel {
       : rng_(sd), nd_(mean, stdvar) {}
   double awgn();
 
+  /**@brief 设置新的随机数种子
+   * @param[in] 
+   *
+  */
+  inline void reset_channel() {
+    rng_.seed(std::random_device{}());
+  }
+
  private:
   mt19937 rng_;
   // normal guassian distribution
-  normal_distribution<> nd_;
+  normal_distribution<double> nd_;
 };
 
 void AWGN(void);

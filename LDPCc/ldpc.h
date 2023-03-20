@@ -18,7 +18,7 @@ using std::vector;
 using std::istringstream;
 
 using PosType = int16_t;
-using SymbolWidthType = float;
+using SymbolWidthType = double;
 using BitType = int8_t;  // use char to a bit
 using InfoFrameType = vector<BitType>;
 using LLRWidthType = SymbolWidthType;

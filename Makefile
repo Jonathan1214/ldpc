@@ -67,7 +67,7 @@ parse:
 
 # cat $(outfile) | grep 'OK' | sed -n '/2022-07-22 16:42:51/,/*/p' | awk '{print $4, $8, $9}'
 # run 4x8 base matrix size code
-attenu =625
+attenu =750
 run:
 	@$(TARGET) \
 		--len 2048 \
@@ -85,7 +85,7 @@ run:
 		-v$(CUR_DIR)/matrix/VNsCon.csv \
 		-s 1.9 \
 		-S 0.2 \
-		-E 2.3 \
+		-E 3.5 \
 		$(outfile)
 
 help:
